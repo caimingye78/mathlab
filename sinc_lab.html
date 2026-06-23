@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导数动态实验室: sinc 函数探索</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --panel: #ffffff; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* 左侧控制面板 */
+        #sidebar { width: 350px; background: var(--panel); border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
+        h2 { color: #1e293b; font-size: 1.25rem; margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .section { margin-bottom: 25px; }
+        .label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        label { font-weight: 600; color: #475569; font-size: 0.9rem; }
+        .value-display { font-family: monospace; color: var(--primary); font-weight: bold; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        
+        /* 右侧画布区域 */
+        #main { flex-grow: 1; position: relative; display: flex; flex-direction: column; }
+        canvas { flex-grow: 1; cursor: crosshair; background: white; }
+        
+        /* 数据悬浮窗 */
+        #data-overlay { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none; min-width: 200px; }
+        .data-item { font-size: 0.85rem; margin: 4px 0; color: #334155; }
+        .data-item b { color: var(--primary); }
+
+        /* 底部说明 */
+        #footer { padding: 10px 20px; background: #f1f5f9; font-size: 0.8rem; color: #64748b; border-top: 1px solid #e2e8f0; }
+        .mode-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-right: 10px; }
+        .active { background: var(--primary); color: white; }
+        .inactive { background: #e2e8f0; color: #475569; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>导数动态实验室</h2>
+    
+    <div class="section">
+        <div class="label-group">
+            <label>工作模式</label>
+        </div>
+        <button id="mode-tangent" class="mode-btn active" onclick="setMode('tangent')">切线探测</button>
+        <button id="mode-param" class="mode-btn inactive" onclick="setMode('param')">参数探索</button>
+    </div>
+
+    <div id="tangent-controls" class="section">
+        <p style="font-size: 0.85rem; color: #64748b;">在曲线上移动鼠标，观察切线与斜率的变化。</p>
+        <div class="label-group">
+            <label>目标函数</label>
+            <span class="value-display">\(f(x) = \frac{\sin x}{x}\)</span>
+        </div>
+    </div>
+
+    <div id="param-controls" class="section" style="display:none;">
+        <div class="label-group">
+            <label>参数 $a$ (直线斜率)</label>
+            <span id="val-a" class="value-display">0.50</span>
+        </div>
+        <input type="range" id="slider-a" min="-2" max="2" step="0.01" value="0.5">
+        
+        <div class="label-group" style="margin-top:15px;">
+            <label>参数 $b$ (截距偏移)</label>
+            <span id="val-b" class="value-display">0.00</span>
+        </div>
+        <input type="range" id="slider-b" min="-2" max="2" step="0.01" value="0">
+        
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-top:10px;">尝试寻找直线 \(y = a(\pi - x) + b\) 与曲线相切的临界状态。</p>
+    </div>
+
+    <div class="section" style="margin-top:auto;">
+        <div class="label-group"><label>实时数学信息</label></div>
+        <div id="math-info" style="font-size: 0.9rem; line-height: 1.6;">
+            <!-- MathJax content -->
+            等待交互...
+        </div>
+    </div>
+</div>
+
+<div id="main">
+    <canvas id="canvas"></canvas>
+    <div id="data-overlay">
+        <div class="data-item">坐标: <b id="coord-x">0.00</b>, <b id="coord-y">0.00</b></div>
+        <div class="data-item">斜率 $k$: <b id="slope-k">0.00</b></div>
+        <div class="data-item">切线: <b id="tangent-eq">y = 0</b></div>
+    </div>
+    <div id="footer">
+        提示：移动鼠标查看切线 | 拖动滑动条观察极值偏移 | 坐标系中心为 $(0,0)$
+    </div>
+</div>
+
+<script>
+/**
+ * 数学核心逻辑
+ */
+const mathConfig = {
+    f: (x) => x === 0 ? 1 : Math.sin(x) / x,
+    df: (x) => {
+        if (Math.abs(x) < 1e-7) return 0; // limit as x->0 of (x*cos(x)-sin(x))/x^2 is 0
+        return (x * Math.cos(x) - Math.sin(x)) / (x * x);
+    }
+};
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+let mode = 'tangent'; // 'tangent' or 'param'
+let mouseX = 0, mouseY = 0;
+let paramA = 0.5, paramB = 0;
+
+// 坐标转换
+const scale = 60; // 1 unit = 60 pixels
+const offset = { x: 0, y: 0 };
+
+function resize() {
+    width = canvas.width = canvas.clientWidth;
+    height = canvas.height = canvas.clientHeight;
+    offset.x = width / 2;
+    offset.y = height / 2;
+}
+
+window.addEventListener('resize', resize);
+resize();
+
+/**
+ * 绘图逻辑
+ */
+function draw() {
+    ctx.clearRect(0, 0, width, height);
+    
+    // 1. 绘制坐标轴
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, offset.y); ctx.lineTo(width, offset.y);
+    ctx.moveTo(offset.x, 0); ctx.lineTo(offset.x, height);
+    ctx.stroke();
+
+    // 绘制刻度 (简化版)
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px Arial';
+    for(let i = -10; i <= 10; i++) {
+        let x = offset.x + i * scale;
+        ctx.fillText(i, x - 5, offset.y + 15);
+        let y = offset.y - i * scale;
+        ctx.fillText(i, offset.x + 5, y + 5);
+    }
+
+    // 2. 绘制 sinc 函数曲线
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    let first = true;
+    for (let px = 0; px < width; px++) {
+        let x = (px - offset.x) / scale;
+        let y = mathConfig.f(x);
+        let py = offset.y - y * scale;
+        if (first) { ctx.moveTo(px, py); first = false; }
+        else { ctx.lineTo(px, py); }
+    }
+    ctx.stroke();
+
+    // 3. 模式特定绘制
+    if (mode === 'tangent') {
+        drawTangentMode();
+    } else {
+        drawParamMode();
+    }
+
+    requestAnimationFrame(draw);
+}
+
+function drawTangentMode() {
+    // 将鼠标像素转换为数学坐标
+    let x0 = (mouseX - offset.x) / scale;
+    let y0 = (offset.y - mouseY) / scale;
+    
+    // 限制在曲线附近（为了演示，我们强行让切点在曲线上）
+    let actualY = mathConfig.f(x0);
+    let k = mathConfig.df(x0);
+    let py0 = offset.y - actualY * scale;
+
+    // 绘制切点
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(mouseX, py0, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 绘制切线: y - y0 = k(x - x0) => y = kx + (y0 - kx0)
+    let b = actualY - k * x0;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    
+    // 计算切线在屏幕上的范围
+    let xStart = (x0 - 10);
+    let xEnd = (x0 + 10);
+    ctx.moveTo(offset.x + xStart * scale, offset.y - (k * xStart + b) * scale);
+    ctx.lineTo(offset.x + xEnd * scale, offset.y - (k * xEnd + b) * scale);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 更新 UI 数据
+    document.getElementById('coord-x').innerText = x0.toFixed(3);
+    document.getElementById('coord-y').innerText = actualY.toFixed(3);
+    document.getElementById('slope-k').innerText = k.toFixed(3);
+    document.getElementById('tangent-eq').innerText = `y = ${k.toFixed(2)}x + ${b.toFixed(2)}`;
+    
+    // 更新 MathJax 公式
+    const mathDiv = document.getElementById('math-info');
+    mathDiv.innerHTML = `
+        \\( P = (${x0.toFixed(2)}, ${actualY.toFixed(2)}) \\)<br>
+        \\( f'(x) = ${k.toFixed(3)} \\)<br>
+        \\( y - ${actualY.toFixed(2)} = ${k.toFixed(2)}(x - ${x0.toFixed(2)}) \\)
+    `;
+    MathJax.typesetPromise([mathDiv]);
+}
+
+function drawParamMode() {
+    // 绘制直线 y = a(π - x) + b
+    // 整理为 y = (-a)x + (aπ + b)
+    let slope = -paramA;
+    let intercept = paramA * Math.PI + paramB;
+
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let x1 = -10, x2 = 10;
+    ctx.moveTo(offset.x + x1 * scale, offset.y - (slope * x1 + intercept) * scale);
+    ctx.lineTo(offset.x + x2 * scale, offset.y - (slope * x2 + intercept) * scale);
+    ctx.stroke();
+
+    // 绘制关键点：π (切点可能发生的位置)
+    let piX = Math.PI;
+    let piY = mathConfig.f(piX);
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    ctx.arc(offset.x + piX * scale, offset.y - piY * scale, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillText("π", offset.x + piX * scale + 5, offset.y - piY * scale - 5);
+
+    // 更新 UI
+    document.getElementById('math-info').innerHTML = `
+        直线方程: \\( y = ${slope.toFixed(2)}x + ${intercept.toFixed(2)} \\)<br>
+        参数 $a = ${paramA.toFixed(2)}$<br>
+        参数 $b = ${paramB.toFixed(2)}$
+    `;
+    MathJax.typesetPromise([document.getElementById('math-info')]);
+}
+
+/**
+ * 事件监听
+ */
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+});
+
+document.getElementById('slider-a').addEventListener('input', (e) => {
+    paramA = parseFloat(e.target.value);
+    document.getElementById('val-a').innerText = paramA.toFixed(2);
+});
+
+document.getElementById('slider-b').addEventListener('input', (e) => {
+    paramB = parseFloat(e.target.value);
+    document.getElementById('val-b').innerText = paramB.toFixed(2);
+});
+
+function setMode(m) {
+    mode = m;
+    document.getElementById('mode-tangent').className = m === 'tangent' ? 'mode-btn active' : 'mode-btn inactive';
+    document.getElementById('mode-param').className = m === 'param' ? 'mode-btn active' : 'mode-btn inactive';
+    document.getElementById('tangent-controls').style.display = m === 'tangent' ? 'block' : 'none';
+    document.getElementById('param-controls').style.display = m === 'param' ? 'block' : 'none';
+}
+
+// 启动
+draw();
+</script>
+
+</body>
+</html>
