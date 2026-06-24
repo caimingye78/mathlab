@@ -1,288 +1,338 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导数动态实验室: sinc 函数探索</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --panel: #ffffff; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
-        
-        /* 左侧控制面板 */
-        #sidebar { width: 350px; background: var(--panel); border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
-        h2 { color: #1e293b; font-size: 1.25rem; margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
-        .section { margin-bottom: 25px; }
-        .label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        label { font-weight: 600; color: #475569; font-size: 0.9rem; }
-        .value-display { font-family: monospace; color: var(--primary); font-weight: bold; }
-        input[type="range"] { width: 100%; cursor: pointer; }
-        
-        /* 右侧画布区域 */
-        #main { flex-grow: 1; position: relative; display: flex; flex-direction: column; }
-        canvas { flex-grow: 1; cursor: crosshair; background: white; }
-        
-        /* 数据悬浮窗 */
-        #data-overlay { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none; min-width: 200px; }
-        .data-item { font-size: 0.85rem; margin: 4px 0; color: #334155; }
-        .data-item b { color: var(--primary); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>导数动态实验室 · sinc 函数</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root { --primary:#2563eb; --bg:#f8fafc; --panel:#fff; --accent:#ef4444; --green:#10b981; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; overflow:hidden; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); display:flex; }
 
-        /* 底部说明 */
-        #footer { padding: 10px 20px; background: #f1f5f9; font-size: 0.8rem; color: #64748b; border-top: 1px solid #e2e8f0; }
-        .mode-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-right: 10px; }
-        .active { background: var(--primary); color: white; }
-        .inactive { background: #e2e8f0; color: #475569; }
-    </style>
+  #sidebar { width:340px; min-width:340px; background:var(--panel); border-right:1px solid #e2e8f0; padding:20px; overflow-y:auto; box-shadow:2px 0 10px rgba(0,0,0,.05); z-index:10; }
+  h2 { font-size:1.2rem; color:#1e293b; border-bottom:2px solid var(--primary); padding-bottom:8px; margin-bottom:16px; }
+  .section { margin-bottom:20px; }
+  .label-group { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  label { font-weight:600; color:#475569; font-size:.85rem; }
+  .val { font-family:monospace; color:var(--primary); font-weight:bold; }
+  input[type=range] { width:100%; cursor:pointer; }
+  .mode-btn { padding:8px 14px; border:none; border-radius:6px; cursor:pointer; font-weight:600; font-size:.85rem; margin-right:8px; transition:.2s; }
+  .mode-btn.active { background:var(--primary); color:#fff; }
+  .mode-btn:not(.active) { background:#e2e8f0; color:#475569; }
+  .hint { font-size:.78rem; color:#94a3b8; margin-top:6px; line-height:1.5; }
+  #math-info { font-size:.85rem; line-height:1.7; color:#334155; background:#f1f5f9; padding:10px; border-radius:6px; min-height:80px; }
+
+  #main { flex:1; position:relative; }
+  #canvas { position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair; background:#fff; }
+  #data-overlay { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.92); padding:12px 16px; border-radius:8px; border:1px solid #e2e8f0; box-shadow:0 4px 6px rgba(0,0,0,.08); pointer-events:none; font-size:.82rem; min-width:180px; }
+  #data-overlay .row { margin:3px 0; color:#334155; }
+  #data-overlay b { color:var(--primary); }
+  #footer { position:absolute; bottom:0; left:0; right:0; padding:8px 16px; background:#f1f5f9; font-size:.76rem; color:#64748b; border-top:1px solid #e2e8f0; }
+</style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>导数动态实验室</h2>
-    
-    <div class="section">
-        <div class="label-group">
-            <label>工作模式</label>
-        </div>
-        <button id="mode-tangent" class="mode-btn active" onclick="setMode('tangent')">切线探测</button>
-        <button id="mode-param" class="mode-btn inactive" onclick="setMode('param')">参数探索</button>
-    </div>
+  <h2>🎵 导数动态实验室</h2>
 
-    <div id="tangent-controls" class="section">
-        <p style="font-size: 0.85rem; color: #64748b;">在曲线上移动鼠标，观察切线与斜率的变化。</p>
-        <div class="label-group">
-            <label>目标函数</label>
-            <span class="value-display">\(f(x) = \frac{\sin x}{x}\)</span>
-        </div>
-    </div>
+  <div class="section">
+    <div class="label-group"><label>工作模式</label></div>
+    <button id="btn-t" class="mode-btn active" onclick="setMode('t')">切线探测</button>
+    <button id="btn-p" class="mode-btn" onclick="setMode('p')">参数探索</button>
+  </div>
 
-    <div id="param-controls" class="section" style="display:none;">
-        <div class="label-group">
-            <label>参数 $a$ (直线斜率)</label>
-            <span id="val-a" class="value-display">0.50</span>
-        </div>
-        <input type="range" id="slider-a" min="-2" max="2" step="0.01" value="0.5">
-        
-        <div class="label-group" style="margin-top:15px;">
-            <label>参数 $b$ (截距偏移)</label>
-            <span id="val-b" class="value-display">0.00</span>
-        </div>
-        <input type="range" id="slider-b" min="-2" max="2" step="0.01" value="0">
-        
-        <p style="font-size: 0.8rem; color: #94a3b8; margin-top:10px;">尝试寻找直线 \(y = a(\pi - x) + b\) 与曲线相切的临界状态。</p>
+  <div class="section">
+    <div class="label-group"><label>目标函数</label></div>
+    <div style="font-size:.9rem; color:#1e293b; background:#eff6ff; padding:8px; border-radius:6px; text-align:center;">
+      \( f(x) = \dfrac{\sin x}{x} \)
     </div>
+  </div>
 
-    <div class="section" style="margin-top:auto;">
-        <div class="label-group"><label>实时数学信息</label></div>
-        <div id="math-info" style="font-size: 0.9rem; line-height: 1.6;">
-            <!-- MathJax content -->
-            等待交互...
-        </div>
-    </div>
+  <div id="tangent-controls" class="section">
+    <p class="hint">👉 在右侧画布上<b>移动鼠标</b>，切点会沿曲线滑动，实时显示切线与斜率。</p>
+  </div>
+
+  <div id="param-controls" class="section" style="display:none;">
+    <div class="label-group"><label>参数 a（斜率）</label><span id="va" class="val">0.50</span></div>
+    <input type="range" id="sa" min="-2" max="2" step="0.01" value="0.5">
+    <div class="label-group" style="margin-top:12px;"><label>参数 b（截距）</label><span id="vb" class="val">0.00</span></div>
+    <input type="range" id="sb" min="-2" max="2" step="0.01" value="0">
+    <p class="hint">直线 \(y = a(\pi - x) + b\) 会随参数实时移动。寻找它与曲线<b>相切</b>的临界状态。</p>
+  </div>
+
+  <div class="section">
+    <div class="label-group"><label>实时数学信息</label></div>
+    <div id="math-info">等待交互…</div>
+  </div>
+
+  <div class="section">
+    <div class="label-group"><label>极值点标注</label></div>
+    <p class="hint" id="extrema-list">自动计算中…</p>
+  </div>
 </div>
 
 <div id="main">
-    <canvas id="canvas"></canvas>
-    <div id="data-overlay">
-        <div class="data-item">坐标: <b id="coord-x">0.00</b>, <b id="coord-y">0.00</b></div>
-        <div class="data-item">斜率 $k$: <b id="slope-k">0.00</b></div>
-        <div class="data-item">切线: <b id="tangent-eq">y = 0</b></div>
-    </div>
-    <div id="footer">
-        提示：移动鼠标查看切线 | 拖动滑动条观察极值偏移 | 坐标系中心为 $(0,0)$
-    </div>
+  <canvas id="canvas"></canvas>
+  <div id="data-overlay">
+    <div class="row">切点 x: <b id="dx">—</b></div>
+    <div class="row">切点 y: <b id="dy">—</b></div>
+    <div class="row">斜率 k: <b id="dk">—</b></div>
+    <div class="row">切线方程: <b id="deq">—</b></div>
+  </div>
+  <div id="footer">
+    💡 移动鼠标查看切线 ｜ 拖动滑动条观察极值偏移 ｜ 红点=切点 ｜ 绿点=极值点
+  </div>
 </div>
 
 <script>
-/**
- * 数学核心逻辑
- */
-const mathConfig = {
-    f: (x) => x === 0 ? 1 : Math.sin(x) / x,
-    df: (x) => {
-        if (Math.abs(x) < 1e-7) return 0; // limit as x->0 of (x*cos(x)-sin(x))/x^2 is 0
-        return (x * Math.cos(x) - Math.sin(x)) / (x * x);
-    }
+/* ====== 数学核心 ====== */
+const f  = x => Math.abs(x) < 1e-10 ? 1 : Math.sin(x) / x;
+const df = x => {
+  if (Math.abs(x) < 1e-7) return 0; // lim x->0 of (x cos x - sin x)/x^2 = 0
+  return (x * Math.cos(x) - Math.sin(x)) / (x * x);
 };
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let width, height;
-let mode = 'tangent'; // 'tangent' or 'param'
-let mouseX = 0, mouseY = 0;
-let paramA = 0.5, paramB = 0;
-
-// 坐标转换
-const scale = 60; // 1 unit = 60 pixels
-const offset = { x: 0, y: 0 };
-
-function resize() {
-    width = canvas.width = canvas.clientWidth;
-    height = canvas.height = canvas.clientHeight;
-    offset.x = width / 2;
-    offset.y = height / 2;
+/* 极值点：解 x·cos(x) = sin(x)，即 tan(x)=x（x≠0） */
+function findExtrema(xmin, xmax, step) {
+  const roots = [];
+  let prev = df(xmin);
+  for (let x = xmin + step; x <= xmax; x += step) {
+    const cur = df(x);
+    if (prev * cur < 0) {
+      // 二分法精化
+      let lo = x - step, hi = x;
+      for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        if (df(lo) * df(mid) < 0) hi = mid; else lo = mid;
+      }
+      roots.push((lo + hi) / 2);
+    }
+    prev = cur;
+  }
+  return roots;
 }
 
+/* ====== Canvas 设置（修复尺寸 bug） ====== */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0;
+const SCALE = 55; // 1 数学单位 = 55px
+
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  W = canvas.width  = Math.max(1, Math.round(rect.width));
+  H = canvas.height = Math.max(1, Math.round(rect.height));
+}
 window.addEventListener('resize', resize);
-resize();
+// 等 DOM 布局完成
+requestAnimationFrame(() => { resize(); draw(); });
 
-/**
- * 绘图逻辑
- */
-function draw() {
-    ctx.clearRect(0, 0, width, height);
-    
-    // 1. 绘制坐标轴
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1;
+/* ====== 状态 ====== */
+let mode = 't';
+let mouseX = 0, mouseY = 0, mouseInside = false;
+let paramA = 0.5, paramB = 0;
+let extrema = [];
+
+// 预计算极值点
+extrema = findExtrema(-20, 20, 0.002);
+(function listExtrema() {
+  const txt = extrema.filter(x => Math.abs(x) > 0.1).slice(0, 8)
+    .map(x => `x ≈ ${x.toFixed(3)}, f(x) ≈ ${f(x).toFixed(4)}`).join('<br>');
+  document.getElementById('extrema-list').innerHTML = txt || '未找到';
+})();
+
+/* ====== 坐标转换 ====== */
+// 数学坐标 -> 像素坐标
+function toPxX(x) { return W / 2 + x * SCALE; }
+function toPxY(y) { return H / 2 - y * SCALE; }
+// 像素 -> 数学
+function toMathX(px) { return (px - W / 2) / SCALE; }
+function toMathY(py) { return (H / 2 - py) / SCALE; }
+
+/* ====== 绘图 ====== */
+function drawAxes() {
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+  ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+  ctx.stroke();
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  for (let i = -20; i <= 20; i++) {
+    if (i === 0) continue;
+    const px = toPxX(i);
+    if (px > 10 && px < W - 10) {
+      ctx.beginPath(); ctx.moveTo(px, H/2 - 4); ctx.lineTo(px, H/2 + 4); ctx.stroke();
+      ctx.fillText(i, px, H / 2 + 16);
+    }
+    const py = toPxY(i);
+    if (py > 10 && py < H - 10) {
+      ctx.beginPath(); ctx.moveTo(W/2 - 4, py); ctx.lineTo(W/2 + 4, py); ctx.stroke();
+      ctx.textAlign = 'right';
+      ctx.fillText(i, W / 2 - 8, py + 4);
+      ctx.textAlign = 'center';
+    }
+  }
+  // 标注 π
+  const piPx = toPxX(Math.PI);
+  if (piPx < W) {
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('π', piPx, H / 2 + 16);
+    ctx.beginPath(); ctx.moveTo(piPx, H/2 - 5); ctx.lineTo(piPx, H/2 + 5); ctx.strokeStyle = '#64748b'; ctx.stroke();
+  }
+}
+
+function drawCurve() {
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  let started = false;
+  for (let px = 0; px <= W; px += 1) {
+    const x = toMathX(px);
+    const y = f(x);
+    const py = toPxY(y);
+    if (py < -100 || py > H + 100) { started = false; continue; }
+    if (!started) { ctx.moveTo(px, py); started = true; }
+    else { ctx.lineTo(px, py); }
+  }
+  ctx.stroke();
+}
+
+function drawExtrema() {
+  ctx.fillStyle = '#10b981';
+  ctx.strokeStyle = '#059669';
+  for (const x of extrema) {
+    if (Math.abs(x) < 0.1) continue;
+    const px = toPxX(x), py = toPxY(f(x));
+    if (px < 0 || px > W) continue;
     ctx.beginPath();
-    ctx.moveTo(0, offset.y); ctx.lineTo(width, offset.y);
-    ctx.moveTo(offset.x, 0); ctx.lineTo(offset.x, height);
-    ctx.stroke();
-
-    // 绘制刻度 (简化版)
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px Arial';
-    for(let i = -10; i <= 10; i++) {
-        let x = offset.x + i * scale;
-        ctx.fillText(i, x - 5, offset.y + 15);
-        let y = offset.y - i * scale;
-        ctx.fillText(i, offset.x + 5, y + 5);
-    }
-
-    // 2. 绘制 sinc 函数曲线
-    ctx.strokeStyle = '#2563eb';
-    ctx.lineWidth = 2.5;
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.beginPath();
-    let first = true;
-    for (let px = 0; px < width; px++) {
-        let x = (px - offset.x) / scale;
-        let y = mathConfig.f(x);
-        let py = offset.y - y * scale;
-        if (first) { ctx.moveTo(px, py); first = false; }
-        else { ctx.lineTo(px, py); }
-    }
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
     ctx.stroke();
-
-    // 3. 模式特定绘制
-    if (mode === 'tangent') {
-        drawTangentMode();
-    } else {
-        drawParamMode();
-    }
-
-    requestAnimationFrame(draw);
+  }
 }
 
 function drawTangentMode() {
-    // 将鼠标像素转换为数学坐标
-    let x0 = (mouseX - offset.x) / scale;
-    let y0 = (offset.y - mouseY) / scale;
-    
-    // 限制在曲线附近（为了演示，我们强行让切点在曲线上）
-    let actualY = mathConfig.f(x0);
-    let k = mathConfig.df(x0);
-    let py0 = offset.y - actualY * scale;
+  if (!mouseInside) return;
+  const x0 = toMathX(mouseX);
+  const y0 = f(x0);
+  const k = df(x0);
+  const b = y0 - k * x0;
+  const pY = toPxY(y0);
 
-    // 绘制切点
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(mouseX, py0, 5, 0, Math.PI * 2);
-    ctx.fill();
+  // 切线
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 1.8;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  const x1 = toMathX(0), x2 = toMathX(W);
+  ctx.moveTo(0, toPxY(k * x1 + b));
+  ctx.lineTo(W, toPxY(k * x2 + b));
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-    // 绘制切线: y - y0 = k(x - x0) => y = kx + (y0 - kx0)
-    let b = actualY - k * x0;
-    ctx.strokeStyle = '#f59e0b';
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    
-    // 计算切线在屏幕上的范围
-    let xStart = (x0 - 10);
-    let xEnd = (x0 + 10);
-    ctx.moveTo(offset.x + xStart * scale, offset.y - (k * xStart + b) * scale);
-    ctx.lineTo(offset.x + xEnd * scale, offset.y - (k * xEnd + b) * scale);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  // 切点
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(mouseX, pY, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
-    // 更新 UI 数据
-    document.getElementById('coord-x').innerText = x0.toFixed(3);
-    document.getElementById('coord-y').innerText = actualY.toFixed(3);
-    document.getElementById('slope-k').innerText = k.toFixed(3);
-    document.getElementById('tangent-eq').innerText = `y = ${k.toFixed(2)}x + ${b.toFixed(2)}`;
-    
-    // 更新 MathJax 公式
-    const mathDiv = document.getElementById('math-info');
-    mathDiv.innerHTML = `
-        \\( P = (${x0.toFixed(2)}, ${actualY.toFixed(2)}) \\)<br>
-        \\( f'(x) = ${k.toFixed(3)} \\)<br>
-        \\( y - ${actualY.toFixed(2)} = ${k.toFixed(2)}(x - ${x0.toFixed(2)}) \\)
-    `;
-    MathJax.typesetPromise([mathDiv]);
+  // 更新数据面板
+  document.getElementById('dx').textContent = x0.toFixed(3);
+  document.getElementById('dy').textContent = y0.toFixed(3);
+  document.getElementById('dk').textContent = k.toFixed(4);
+  document.getElementById('deq').textContent = `y=${k.toFixed(2)}x${b >= 0 ? '+' : ''}${b.toFixed(2)}`;
+
+  const info = document.getElementById('math-info');
+  info.innerHTML = `
+    切点 \\( P(${x0.toFixed(3)},\\; ${y0.toFixed(3)}) \\)<br>
+    导数 \\( f'(x) = ${k.toFixed(4)} \\)<br>
+    切线 \\( y = ${k.toFixed(3)}\\,x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(3)} \\)
+  `;
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([info]);
 }
 
 function drawParamMode() {
-    // 绘制直线 y = a(π - x) + b
-    // 整理为 y = (-a)x + (aπ + b)
-    let slope = -paramA;
-    let intercept = paramA * Math.PI + paramB;
+  // 直线 y = a(π - x) + b = -a·x + (aπ + b)
+  const k = -paramA;
+  const b = paramA * Math.PI + paramB;
 
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    let x1 = -10, x2 = 10;
-    ctx.moveTo(offset.x + x1 * scale, offset.y - (slope * x1 + intercept) * scale);
-    ctx.lineTo(offset.x + x2 * scale, offset.y - (slope * x2 + intercept) * scale);
-    ctx.stroke();
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  const x1 = toMathX(0), x2 = toMathX(W);
+  ctx.moveTo(0, toPxY(k * x1 + b));
+  ctx.lineTo(W, toPxY(k * x2 + b));
+  ctx.stroke();
 
-    // 绘制关键点：π (切点可能发生的位置)
-    let piX = Math.PI;
-    let piY = mathConfig.f(piX);
-    ctx.fillStyle = '#64748b';
-    ctx.beginPath();
-    ctx.arc(offset.x + piX * scale, offset.y - piY * scale, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillText("π", offset.x + piX * scale + 5, offset.y - piY * scale - 5);
+  // 标注 π 点
+  const piPx = toPxX(Math.PI), piPy = toPxY(f(Math.PI));
+  ctx.fillStyle = '#6366f1';
+  ctx.beginPath(); ctx.arc(piPx, piPy, 5, 0, Math.PI * 2); ctx.fill();
 
-    // 更新 UI
-    document.getElementById('math-info').innerHTML = `
-        直线方程: \\( y = ${slope.toFixed(2)}x + ${intercept.toFixed(2)} \\)<br>
-        参数 $a = ${paramA.toFixed(2)}$<br>
-        参数 $b = ${paramB.toFixed(2)}$
-    `;
-    MathJax.typesetPromise([document.getElementById('math-info')]);
+  const info = document.getElementById('math-info');
+  info.innerHTML = `
+    直线 \\( y = ${k.toFixed(3)}\\,x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(3)} \\)<br>
+    即 \\( y = ${paramA.toFixed(2)}(\\pi - x) ${paramB >= 0 ? '+' : '-'} ${Math.abs(paramB).toFixed(2)} \\)<br>
+    在 \\( x=\\pi \\) 处：直线值 \\( ${(paramB).toFixed(3)} \\)，曲线值 \\( ${f(Math.PI).toFixed(4)} \\)
+  `;
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([info]);
 }
 
-/**
- * 事件监听
- */
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-});
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  drawAxes();
+  drawCurve();
+  drawExtrema();
+  if (mode === 't') drawTangentMode(); else drawParamMode();
+  requestAnimationFrame(draw);
+}
 
-document.getElementById('slider-a').addEventListener('input', (e) => {
-    paramA = parseFloat(e.target.value);
-    document.getElementById('val-a').innerText = paramA.toFixed(2);
+/* ====== 交互事件 ====== */
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouseX = e.clientX - r.left;
+  mouseY = e.clientY - r.top;
+  mouseInside = true;
 });
+canvas.addEventListener('mouseleave', () => { mouseInside = false; });
+// 触屏支持
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  const t = e.touches[0];
+  mouseX = t.clientX - r.left;
+  mouseY = t.clientY - r.top;
+  mouseInside = true;
+}, { passive: false });
 
-document.getElementById('slider-b').addEventListener('input', (e) => {
-    paramB = parseFloat(e.target.value);
-    document.getElementById('val-b').innerText = paramB.toFixed(2);
+document.getElementById('sa').addEventListener('input', e => {
+  paramA = parseFloat(e.target.value);
+  document.getElementById('va').textContent = paramA.toFixed(2);
+});
+document.getElementById('sb').addEventListener('input', e => {
+  paramB = parseFloat(e.target.value);
+  document.getElementById('vb').textContent = paramB.toFixed(2);
 });
 
 function setMode(m) {
-    mode = m;
-    document.getElementById('mode-tangent').className = m === 'tangent' ? 'mode-btn active' : 'mode-btn inactive';
-    document.getElementById('mode-param').className = m === 'param' ? 'mode-btn active' : 'mode-btn inactive';
-    document.getElementById('tangent-controls').style.display = m === 'tangent' ? 'block' : 'none';
-    document.getElementById('param-controls').style.display = m === 'param' ? 'block' : 'none';
+  mode = m;
+  document.getElementById('btn-t').classList.toggle('active', m === 't');
+  document.getElementById('btn-p').classList.toggle('active', m === 'p');
+  document.getElementById('tangent-controls').style.display = m === 't' ? 'block' : 'none';
+  document.getElementById('param-controls').style.display = m === 'p' ? 'block' : 'none';
 }
-
-// 启动
-draw();
 </script>
-
 </body>
 </html>
