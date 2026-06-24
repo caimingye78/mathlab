@@ -357,10 +357,10 @@ function renderContent() {
           <p>拖动滑块改变切点 $x_0$，观察切线（橙色虚线）与斜率的变化：</p>
           <div class="control-row">
             <label>切点 $x_0$</label>
-            <input type="range" id="tangent-slider" min="0.3" max="6.28" step="0.01" value="3.14159">
+            <input type="range" id="tangent-slider" min="-6.28" max="6.28" step="0.01" value="3.14159">
             <span class="val-display" id="tangent-val">3.14</span>
           </div>
-          <p style="font-size:.8rem; color:#64748b;">当 $x_0=\\pi$ 时，斜率应等于 $-\\dfrac{1}{\\pi}\\approx -0.3183$。</p>
+          <p style="font-size:.8rem; color:#64748b;">当 $x_0=\\pi$ 时，斜率应等于 $-\\dfrac{1}{\\pi}\\approx -0.3183$。负半轴可观察 sinc 是偶函数。</p>
           <p style="font-size:.8rem; color:#64748b;">观察右上角数据面板的 f'(x) 值是否吻合。</p>
         </div>
       </div>
@@ -595,16 +595,16 @@ function renderContent() {
           <p>拖动滑块，观察直线 $y=a(\\pi-x)$ 与曲线的关系：</p>
           <div class="control-row">
             <label>参数 $a$</label>
-            <input type="range" id="slider-a" min="0.2" max="0.5" step="0.001" value="0.318">
+            <input type="range" id="slider-a" min="-0.5" max="1" step="0.001" value="0.318">
             <span class="val-display" id="val-a">0.318</span>
           </div>
           <div class="control-row">
             <label>参数 $b$</label>
-            <input type="range" id="slider-b" min="0.3" max="0.5" step="0.001" value="0.405">
+            <input type="range" id="slider-b" min="0" max="1" step="0.001" value="0.405">
             <span class="val-display" id="val-b">0.405</span>
           </div>
           <p style="font-size:.8rem; color:#64748b;">理论值：$a_{\\max}=\\frac{1}{\\pi}\\approx 0.3183$，$b_{\\min}=\\frac{4}{\\pi^2}\\approx 0.4053$。</p>
-          <p style="font-size:.8rem; color:#16a34a;">绿色=直线在曲线下方（满足），红色=超出（不满足）。间隙=0 时相切。</p>
+          <p style="font-size:.8rem; color:#16a34a;">先大范围拖动看"满足→相切→超出"的过渡，再缩小到临界值。绿色=满足，红色=超出，间隙=0 时相切。</p>
         </div>
       </div>
 
