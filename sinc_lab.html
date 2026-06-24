@@ -3,31 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>导数动态实验室 · sinc 函数</title>
+<title>导数动态实验室 · sinc 函数完整解题课</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
-  :root { --primary:#2563eb; --bg:#f8fafc; --panel:#fff; --accent:#ef4444; --green:#10b981; }
+  :root { --primary:#2563eb; --bg:#f8fafc; --panel:#fff; --accent:#ef4444; --green:#10b981; --orange:#f59e0b; --purple:#8b5cf6; }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; overflow:hidden; }
   body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); display:flex; }
 
-  #sidebar { width:340px; min-width:340px; background:var(--panel); border-right:1px solid #e2e8f0; padding:20px; overflow-y:auto; box-shadow:2px 0 10px rgba(0,0,0,.05); z-index:10; }
-  h2 { font-size:1.2rem; color:#1e293b; border-bottom:2px solid var(--primary); padding-bottom:8px; margin-bottom:16px; }
-  .section { margin-bottom:20px; }
-  .label-group { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-  label { font-weight:600; color:#475569; font-size:.85rem; }
-  .val { font-family:monospace; color:var(--primary); font-weight:bold; }
-  input[type=range] { width:100%; cursor:pointer; }
-  .mode-btn { padding:8px 14px; border:none; border-radius:6px; cursor:pointer; font-weight:600; font-size:.85rem; margin-right:8px; transition:.2s; }
-  .mode-btn.active { background:var(--primary); color:#fff; }
-  .mode-btn:not(.active) { background:#e2e8f0; color:#475569; }
-  .hint { font-size:.78rem; color:#94a3b8; margin-top:6px; line-height:1.5; }
-  #math-info { font-size:.85rem; line-height:1.7; color:#334155; background:#f1f5f9; padding:10px; border-radius:6px; min-height:80px; }
+  #sidebar { width:380px; min-width:380px; background:var(--panel); border-right:1px solid #e2e8f0; overflow-y:auto; box-shadow:2px 0 10px rgba(0,0,0,.05); z-index:10; }
+  #sidebar::-webkit-scrollbar { width:6px; }
+  #sidebar::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  .header { padding:20px; border-bottom:1px solid #e2e8f0; background:linear-gradient(135deg,#eff6ff,#dbeafe); }
+  .header h2 { font-size:1.15rem; color:#1e3a8a; margin-bottom:4px; }
+  .header .sub { font-size:.78rem; color:#64748b; }
+
+  .q-tabs { display:flex; background:#f1f5f9; border-bottom:1px solid #e2e8f0; }
+  .q-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-weight:600; font-size:.85rem; color:#64748b; transition:.2s; border-bottom:3px solid transparent; }
+  .q-tab.active { background:#fff; color:var(--primary); border-bottom-color:var(--primary); }
+
+  .content { padding:20px; }
+
+  .problem-box { background:#fef3c7; border-left:4px solid var(--orange); padding:12px; border-radius:6px; margin-bottom:16px; font-size:.85rem; line-height:1.6; }
+  .problem-box b { color:#92400e; }
+
+  .step-card { background:#fff; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px; overflow:hidden; transition:.2s; }
+  .step-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .step-header { padding:10px 14px; background:#f8fafc; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .step-header:hover { background:#f1f5f9; }
+  .step-title { font-weight:600; color:#1e293b; font-size:.88rem; display:flex; align-items:center; gap:8px; }
+  .step-num { background:var(--primary); color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; }
+  .step-arrow { color:#94a3b8; transition:transform .2s; }
+  .step-card.open .step-arrow { transform:rotate(90deg); }
+  .step-body { padding:14px; font-size:.85rem; line-height:1.7; color:#334155; display:none; border-top:1px solid #e2e8f0; }
+  .step-card.open .step-body { display:block; }
+  .step-body .formula { background:#eff6ff; padding:8px 12px; border-radius:6px; margin:8px 0; font-family:monospace; }
+
+  .control-row { display:flex; gap:8px; align-items:center; margin:8px 0; }
+  .control-row label { font-size:.82rem; color:#475569; min-width:60px; }
+  .control-row input[type=range] { flex:1; }
+  .val-display { font-family:monospace; color:var(--primary); font-weight:bold; min-width:60px; text-align:right; font-size:.85rem; }
+
+  .answer-box { background:#dcfce7; border-left:4px solid var(--green); padding:12px; border-radius:6px; margin-top:12px; font-size:.9rem; }
+  .answer-box b { color:#166534; }
 
   #main { flex:1; position:relative; }
   #canvas { position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair; background:#fff; }
-  #data-overlay { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.92); padding:12px 16px; border-radius:8px; border:1px solid #e2e8f0; box-shadow:0 4px 6px rgba(0,0,0,.08); pointer-events:none; font-size:.82rem; min-width:180px; }
+  #data-overlay { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.95); padding:12px 16px; border-radius:8px; border:1px solid #e2e8f0; box-shadow:0 4px 6px rgba(0,0,0,.08); pointer-events:none; font-size:.82rem; min-width:200px; }
   #data-overlay .row { margin:3px 0; color:#334155; }
   #data-overlay b { color:var(--primary); }
   #footer { position:absolute; bottom:0; left:0; right:0; padding:8px 16px; background:#f1f5f9; font-size:.76rem; color:#64748b; border-top:1px solid #e2e8f0; }
@@ -36,54 +60,31 @@
 <body>
 
 <div id="sidebar">
-  <h2>🎵 导数动态实验室</h2>
-
-  <div class="section">
-    <div class="label-group"><label>工作模式</label></div>
-    <button id="btn-t" class="mode-btn active" onclick="setMode('t')">切线探测</button>
-    <button id="btn-p" class="mode-btn" onclick="setMode('p')">参数探索</button>
+  <div class="header">
+    <h2>🎵 导数动态实验室</h2>
+    <div class="sub">浙江杭州 26 届高二下 6 月质检 · T18</div>
   </div>
 
-  <div class="section">
-    <div class="label-group"><label>目标函数</label></div>
-    <div style="font-size:.9rem; color:#1e293b; background:#eff6ff; padding:8px; border-radius:6px; text-align:center;">
-      \( f(x) = \dfrac{\sin x}{x} \)
-    </div>
+  <div class="q-tabs">
+    <div class="q-tab active" data-q="1" onclick="switchQuestion(1)">第(1)问</div>
+    <div class="q-tab" data-q="2" onclick="switchQuestion(2)">第(2)问</div>
+    <div class="q-tab" data-q="3" onclick="switchQuestion(3)">第(3)问</div>
   </div>
 
-  <div id="tangent-controls" class="section">
-    <p class="hint">👉 在右侧画布上<b>移动鼠标</b>，切点会沿曲线滑动，实时显示切线与斜率。</p>
-  </div>
-
-  <div id="param-controls" class="section" style="display:none;">
-    <div class="label-group"><label>参数 a（斜率）</label><span id="va" class="val">0.50</span></div>
-    <input type="range" id="sa" min="-2" max="2" step="0.01" value="0.5">
-    <div class="label-group" style="margin-top:12px;"><label>参数 b（截距）</label><span id="vb" class="val">0.00</span></div>
-    <input type="range" id="sb" min="-2" max="2" step="0.01" value="0">
-    <p class="hint">直线 \(y = a(\pi - x) + b\) 会随参数实时移动。寻找它与曲线<b>相切</b>的临界状态。</p>
-  </div>
-
-  <div class="section">
-    <div class="label-group"><label>实时数学信息</label></div>
-    <div id="math-info">等待交互…</div>
-  </div>
-
-  <div class="section">
-    <div class="label-group"><label>极值点标注</label></div>
-    <p class="hint" id="extrema-list">自动计算中…</p>
+  <div class="content" id="content-area">
+    <!-- 内容由 JS 动态生成 -->
   </div>
 </div>
 
 <div id="main">
   <canvas id="canvas"></canvas>
   <div id="data-overlay">
-    <div class="row">切点 x: <b id="dx">—</b></div>
-    <div class="row">切点 y: <b id="dy">—</b></div>
-    <div class="row">斜率 k: <b id="dk">—</b></div>
-    <div class="row">切线方程: <b id="deq">—</b></div>
+    <div class="row">当前 x: <b id="dx">—</b></div>
+    <div class="row">f(x): <b id="dy">—</b></div>
+    <div class="row">f'(x): <b id="dk">—</b></div>
   </div>
   <div id="footer">
-    💡 移动鼠标查看切线 ｜ 拖动滑动条观察极值偏移 ｜ 红点=切点 ｜ 绿点=极值点
+    💡 切换左侧问题标签查看完整解题过程 ｜ 拖动滑块验证结论 ｜ 红点=切点，绿点=极值点
   </div>
 </div>
 
@@ -91,18 +92,16 @@
 /* ====== 数学核心 ====== */
 const f  = x => Math.abs(x) < 1e-10 ? 1 : Math.sin(x) / x;
 const df = x => {
-  if (Math.abs(x) < 1e-7) return 0; // lim x->0 of (x cos x - sin x)/x^2 = 0
+  if (Math.abs(x) < 1e-7) return 0;
   return (x * Math.cos(x) - Math.sin(x)) / (x * x);
 };
 
-/* 极值点：解 x·cos(x) = sin(x)，即 tan(x)=x（x≠0） */
 function findExtrema(xmin, xmax, step) {
   const roots = [];
   let prev = df(xmin);
   for (let x = xmin + step; x <= xmax; x += step) {
     const cur = df(x);
     if (prev * cur < 0) {
-      // 二分法精化
       let lo = x - step, hi = x;
       for (let i = 0; i < 60; i++) {
         const mid = (lo + hi) / 2;
@@ -115,11 +114,10 @@ function findExtrema(xmin, xmax, step) {
   return roots;
 }
 
-/* ====== Canvas 设置（修复尺寸 bug） ====== */
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let W = 0, H = 0;
-const SCALE = 55; // 1 数学单位 = 55px
+const SCALE = 55;
 
 function resize() {
   const rect = canvas.getBoundingClientRect();
@@ -127,32 +125,20 @@ function resize() {
   H = canvas.height = Math.max(1, Math.round(rect.height));
 }
 window.addEventListener('resize', resize);
-// 等 DOM 布局完成
 requestAnimationFrame(() => { resize(); draw(); });
 
-/* ====== 状态 ====== */
-let mode = 't';
+let currentQ = 1;
 let mouseX = 0, mouseY = 0, mouseInside = false;
 let paramA = 0.5, paramB = 0;
-let extrema = [];
+let tangentX = Math.PI;
+let symmetryX = 1.0;
+let extrema = findExtrema(-20, 20, 0.002);
 
-// 预计算极值点
-extrema = findExtrema(-20, 20, 0.002);
-(function listExtrema() {
-  const txt = extrema.filter(x => Math.abs(x) > 0.1).slice(0, 8)
-    .map(x => `x ≈ ${x.toFixed(3)}, f(x) ≈ ${f(x).toFixed(4)}`).join('<br>');
-  document.getElementById('extrema-list').innerHTML = txt || '未找到';
-})();
+const toPxX = x => W / 2 + x * SCALE;
+const toPxY = y => H / 2 - y * SCALE;
+const toMathX = px => (px - W / 2) / SCALE;
+const toMathY = py => (H / 2 - py) / SCALE;
 
-/* ====== 坐标转换 ====== */
-// 数学坐标 -> 像素坐标
-function toPxX(x) { return W / 2 + x * SCALE; }
-function toPxY(y) { return H / 2 - y * SCALE; }
-// 像素 -> 数学
-function toMathX(px) { return (px - W / 2) / SCALE; }
-function toMathY(py) { return (H / 2 - py) / SCALE; }
-
-/* ====== 绘图 ====== */
 function drawAxes() {
   ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 1;
@@ -179,12 +165,21 @@ function drawAxes() {
       ctx.textAlign = 'center';
     }
   }
-  // 标注 π
   const piPx = toPxX(Math.PI);
-  if (piPx < W) {
+  if (piPx < W - 20) {
     ctx.fillStyle = '#64748b';
     ctx.fillText('π', piPx, H / 2 + 16);
-    ctx.beginPath(); ctx.moveTo(piPx, H/2 - 5); ctx.lineTo(piPx, H/2 + 5); ctx.strokeStyle = '#64748b'; ctx.stroke();
+    ctx.strokeStyle = '#64748b';
+    ctx.beginPath(); ctx.moveTo(piPx, H/2 - 5); ctx.lineTo(piPx, H/2 + 5); ctx.stroke();
+  }
+  const pi2Px = toPxX(Math.PI / 2);
+  if (pi2Px < W - 20) {
+    ctx.fillStyle = '#8b5cf6';
+    ctx.fillText('π/2', pi2Px, H / 2 + 16);
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(pi2Px, 0); ctx.lineTo(pi2Px, H); ctx.stroke();
+    ctx.setLineDash([]);
   }
 }
 
@@ -211,83 +206,105 @@ function drawExtrema() {
     if (Math.abs(x) < 0.1) continue;
     const px = toPxX(x), py = toPxY(f(x));
     if (px < 0 || px > W) continue;
-    ctx.beginPath();
-    ctx.arc(px, py, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(px, py, 5, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.stroke();
   }
 }
 
-function drawTangentMode() {
-  if (!mouseInside) return;
-  const x0 = toMathX(mouseX);
+function drawQ1() {
+  const x0 = tangentX;
   const y0 = f(x0);
   const k = df(x0);
   const b = y0 - k * x0;
-  const pY = toPxY(y0);
 
-  // 切线
   ctx.strokeStyle = '#f59e0b';
-  ctx.lineWidth = 1.8;
+  ctx.lineWidth = 2;
   ctx.setLineDash([6, 4]);
   ctx.beginPath();
-  const x1 = toMathX(0), x2 = toMathX(W);
-  ctx.moveTo(0, toPxY(k * x1 + b));
-  ctx.lineTo(W, toPxY(k * x2 + b));
+  ctx.moveTo(0, toPxY(k * toMathX(0) + b));
+  ctx.lineTo(W, toPxY(k * toMathX(W) + b));
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // 切点
+  const pX = toPxX(x0), pY = toPxY(y0);
   ctx.fillStyle = '#ef4444';
-  ctx.beginPath();
-  ctx.arc(mouseX, pY, 6, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(pX, pY, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
 
-  // 更新数据面板
-  document.getElementById('dx').textContent = x0.toFixed(3);
-  document.getElementById('dy').textContent = y0.toFixed(3);
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath(); ctx.arc(toPxX(Math.PI), toPxY(0), 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#dc2626';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('M(π, 0)', toPxX(Math.PI) + 10, toPxY(0) - 8);
+  ctx.textAlign = 'center';
+
+  document.getElementById('dx').textContent = x0.toFixed(4);
+  document.getElementById('dy').textContent = y0.toFixed(4);
   document.getElementById('dk').textContent = k.toFixed(4);
-  document.getElementById('deq').textContent = `y=${k.toFixed(2)}x${b >= 0 ? '+' : ''}${b.toFixed(2)}`;
-
-  const info = document.getElementById('math-info');
-  info.innerHTML = `
-    切点 \\( P(${x0.toFixed(3)},\\; ${y0.toFixed(3)}) \\)<br>
-    导数 \\( f'(x) = ${k.toFixed(4)} \\)<br>
-    切线 \\( y = ${k.toFixed(3)}\\,x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(3)} \\)
-  `;
-  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([info]);
 }
 
-function drawParamMode() {
-  // 直线 y = a(π - x) + b = -a·x + (aπ + b)
+function drawQ2() {
+  const x = symmetryX;
+  const mirrorX = Math.PI - x;
+  const y1 = f(x);
+  const y2 = f(mirrorX);
+
+  const p1X = toPxX(x), p1Y = toPxY(y1);
+  const p2X = toPxX(mirrorX), p2Y = toPxY(y2);
+
+  ctx.strokeStyle = '#8b5cf6';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(p1X, p1Y); ctx.lineTo(p2X, p2Y); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#8b5cf6';
+  ctx.beginPath(); ctx.arc(p1X, p1Y, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(p2X, p2Y, 6, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = '#7c3aed';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(`f(${x.toFixed(2)})=${y1.toFixed(4)}`, p1X - 8, p1Y - 8);
+  ctx.textAlign = 'left';
+  ctx.fillText(`f(${mirrorX.toFixed(2)})=${y2.toFixed(4)}`, p2X + 8, p2Y - 8);
+  ctx.textAlign = 'center';
+
+  document.getElementById('dx').textContent = x.toFixed(3);
+  document.getElementById('dy').textContent = y1.toFixed(4);
+  document.getElementById('dk').textContent = (y1 - y2).toExponential(2);
+}
+
+function drawQ3() {
   const k = -paramA;
   const b = paramA * Math.PI + paramB;
 
   ctx.strokeStyle = '#10b981';
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  const x1 = toMathX(0), x2 = toMathX(W);
-  ctx.moveTo(0, toPxY(k * x1 + b));
-  ctx.lineTo(W, toPxY(k * x2 + b));
+  ctx.moveTo(0, toPxY(k * toMathX(0) + b));
+  ctx.lineTo(W, toPxY(k * toMathX(W) + b));
   ctx.stroke();
 
-  // 标注 π 点
-  const piPx = toPxX(Math.PI), piPy = toPxY(f(Math.PI));
-  ctx.fillStyle = '#6366f1';
-  ctx.beginPath(); ctx.arc(piPx, piPy, 5, 0, Math.PI * 2); ctx.fill();
+  const pi2X = Math.PI / 2;
+  const pi2Px = toPxX(pi2X);
+  const curveY = f(pi2X);
+  const lineY = paramA * (Math.PI - pi2X) + paramB;
 
-  const info = document.getElementById('math-info');
-  info.innerHTML = `
-    直线 \\( y = ${k.toFixed(3)}\\,x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(3)} \\)<br>
-    即 \\( y = ${paramA.toFixed(2)}(\\pi - x) ${paramB >= 0 ? '+' : '-'} ${Math.abs(paramB).toFixed(2)} \\)<br>
-    在 \\( x=\\pi \\) 处：直线值 \\( ${(paramB).toFixed(3)} \\)，曲线值 \\( ${f(Math.PI).toFixed(4)} \\)
-  `;
-  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([info]);
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath(); ctx.arc(pi2Px, toPxY(curveY), 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#059669';
+  ctx.beginPath(); ctx.arc(pi2Px, toPxY(lineY), 6, 0, Math.PI * 2); ctx.fill();
+
+  const gap = curveY - lineY;
+  ctx.fillStyle = gap >= 0 ? '#16a34a' : '#dc2626';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(`间隙: ${gap.toFixed(4)}`, pi2Px + 12, toPxY((curveY + lineY) / 2));
+
+  document.getElementById('dx').textContent = pi2X.toFixed(4);
+  document.getElementById('dy').textContent = curveY.toFixed(4);
+  document.getElementById('dk').textContent = `a=${paramA.toFixed(3)}, b=${paramB.toFixed(3)}`;
 }
 
 function draw() {
@@ -295,11 +312,12 @@ function draw() {
   drawAxes();
   drawCurve();
   drawExtrema();
-  if (mode === 't') drawTangentMode(); else drawParamMode();
+  if (currentQ === 1) drawQ1();
+  else if (currentQ === 2) drawQ2();
+  else drawQ3();
   requestAnimationFrame(draw);
 }
 
-/* ====== 交互事件 ====== */
 canvas.addEventListener('mousemove', e => {
   const r = canvas.getBoundingClientRect();
   mouseX = e.clientX - r.left;
@@ -307,7 +325,6 @@ canvas.addEventListener('mousemove', e => {
   mouseInside = true;
 });
 canvas.addEventListener('mouseleave', () => { mouseInside = false; });
-// 触屏支持
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const r = canvas.getBoundingClientRect();
@@ -317,22 +334,275 @@ canvas.addEventListener('touchmove', e => {
   mouseInside = true;
 }, { passive: false });
 
-document.getElementById('sa').addEventListener('input', e => {
-  paramA = parseFloat(e.target.value);
-  document.getElementById('va').textContent = paramA.toFixed(2);
-});
-document.getElementById('sb').addEventListener('input', e => {
-  paramB = parseFloat(e.target.value);
-  document.getElementById('vb').textContent = paramB.toFixed(2);
-});
-
-function setMode(m) {
-  mode = m;
-  document.getElementById('btn-t').classList.toggle('active', m === 't');
-  document.getElementById('btn-p').classList.toggle('active', m === 'p');
-  document.getElementById('tangent-controls').style.display = m === 't' ? 'block' : 'none';
-  document.getElementById('param-controls').style.display = m === 'p' ? 'block' : 'none';
+function switchQuestion(q) {
+  currentQ = q;
+  document.querySelectorAll('.q-tab').forEach(t => t.classList.toggle('active', parseInt(t.dataset.q) === q));
+  renderContent();
 }
+
+function toggleStep(card) {
+  card.classList.toggle('open');
+}
+
+function renderContent() {
+  const area = document.getElementById('content-area');
+  if (currentQ === 1) {
+    area.innerHTML = `
+      <div class="problem-box">
+        <b>第(1)问：</b>求曲线 $y=f(x)=\\dfrac{\\sin x}{x}$ 在点 $M(\\pi, 0)$ 处的切线方程。
+      </div>
+
+      <div class="step-card open">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">1</span>思路引导</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          切线方程公式：$y - y_0 = f'(x_0)(x - x_0)$<br>
+          需要求两个量：<b>切点坐标</b> 和 <b>导数值</b>。<br>
+          切点已知为 $M(\\pi, 0)$，所以只需计算 $f'(\\pi)$。
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">2</span>求导公式</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          $$f(x) = \\frac{\\sin x}{x}$$
+          $$f'(x) = \\frac{x\\cos x - \\sin x}{x^2}$$
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">3</span>代入计算</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <div class="formula">
+            $f'(\\pi) = \\dfrac{\\pi\\cos\\pi - \\sin\\pi}{\\pi^2} = \\dfrac{\\pi \\cdot (-1) - 0}{\\pi^2} = -\\dfrac{1}{\\pi}$
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">4</span>切线方程</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          $$y - 0 = -\\frac{1}{\\pi}(x - \\pi)$$
+          $$\\boxed{y = -\\frac{1}{\\pi}x + 1}$$
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">5</span>交互验证</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>拖动滑块改变切点位置，观察切线斜率变化：</p>
+          <div class="control-row">
+            <label>切点 x₀</label>
+            <input type="range" id="tangent-slider" min="0.1" max="6.28" step="0.01" value="3.14159">
+            <span class="val-display" id="tangent-val">3.14</span>
+          </div>
+          <p style="font-size:.78rem; color:#64748b;">当 $x_0 = \\pi$ 时，斜率应为 $-\\dfrac{1}{\\pi} \\approx -0.318$</p>
+        </div>
+      </div>
+
+      <div class="answer-box">
+        <b>✅ 答案：</b>$y = -\\dfrac{1}{\\pi}x + 1$
+      </div>
+    `;
+    setTimeout(() => {
+      const slider = document.getElementById('tangent-slider');
+      const val = document.getElementById('tangent-val');
+      slider.addEventListener('input', e => {
+        tangentX = parseFloat(e.target.value);
+        val.textContent = tangentX.toFixed(3);
+      });
+      if (window.MathJax) MathJax.typesetPromise([area]);
+    }, 0);
+  }
+
+  else if (currentQ === 2) {
+    area.innerHTML = `
+      <div class="problem-box">
+        <b>第(2)问：</b>证明曲线 $y=\\dfrac{f(x)}{\\pi-x}$ 是轴对称图形。
+      </div>
+
+      <div class="step-card open">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">1</span>思路引导</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          轴对称图形 ⟺ 存在常数 $a$，使得 $g(a+x) = g(a-x)$<br>
+          对于 $g(x) = \\dfrac{f(x)}{\\pi-x}$，猜测对称轴为 $x = \\dfrac{\\pi}{2}$<br>
+          需验证：$g\\left(\\dfrac{\\pi}{2}+t\\right) = g\\left(\\dfrac{\\pi}{2}-t\\right)$
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">2</span>计算 $g(\\pi/2+t)$</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          $$g\\left(\\frac{\\pi}{2}+t\\right) = \\frac{f\\left(\\frac{\\pi}{2}+t\\right)}{\\pi - \\left(\\frac{\\pi}{2}+t\\right)} = \\frac{f\\left(\\frac{\\pi}{2}+t\\right)}{\\frac{\\pi}{2}-t}$$
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">3</span>计算 $g(\\pi/2-t)$</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          $$g\\left(\\frac{\\pi}{2}-t\\right) = \\frac{f\\left(\\frac{\\pi}{2}-t\\right)}{\\pi - \\left(\\frac{\\pi}{2}-t\\right)} = \\frac{f\\left(\\frac{\\pi}{2}-t\\right)}{\\frac{\\pi}{2}+t}$$
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">4</span>利用 $f$ 的对称性</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>由 $f(x) = \\dfrac{\\sin x}{x}$，注意：</p>
+          <div class="formula">
+            $f\\left(\\frac{\\pi}{2}+t\\right) = \\frac{\\sin(\\frac{\\pi}{2}+t)}{\\frac{\\pi}{2}+t} = \\frac{\\cos t}{\\frac{\\pi}{2}+t}$
+          </div>
+          <div class="formula">
+            $f\\left(\\frac{\\pi}{2}-t\\right) = \\frac{\\sin(\\frac{\\pi}{2}-t)}{\\frac{\\pi}{2}-t} = \\frac{\\cos t}{\\frac{\\pi}{2}-t}$
+          </div>
+          <p>代入后两个表达式相等。</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">5</span>交互验证</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>拖动滑块，观察左右两侧函数值相等：</p>
+          <div class="control-row">
+            <label>位置 t</label>
+            <input type="range" id="symmetry-slider" min="0.01" max="1.5" step="0.01" value="0.5">
+            <span class="val-display" id="symmetry-val">0.50</span>
+          </div>
+          <p style="font-size:.78rem; color:#64748b;">紫色虚线 = 对称轴 $x=\\pi/2$</p>
+        </div>
+      </div>
+
+      <div class="answer-box">
+        <b>✅ 结论：</b>曲线关于直线 $x = \\dfrac{\\pi}{2}$ 对称。
+      </div>
+    `;
+    setTimeout(() => {
+      const slider = document.getElementById('symmetry-slider');
+      const val = document.getElementById('symmetry-val');
+      slider.addEventListener('input', e => {
+        symmetryX = parseFloat(e.target.value);
+        val.textContent = symmetryX.toFixed(2);
+      });
+      if (window.MathJax) MathJax.typesetPromise([area]);
+    }, 0);
+  }
+
+  else {
+    area.innerHTML = `
+      <div class="problem-box">
+        <b>第(3)问：</b>若 $\\forall x\\in(0,\\pi)$，$a(\\pi-x) \\leq f(x) \\leq b(\\pi-x)$ 恒成立，求 $a$ 的最大值和 $b$ 的最小值。
+      </div>
+
+      <div class="step-card open">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">1</span>思路引导</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>不等式等价于：直线 $y = a(\\pi-x)$ 在曲线下方，$y = b(\\pi-x)$ 在曲线上方。</p>
+          <p><b>$a$ 的最大值</b>：直线"顶"曲线时的临界斜率（直线在 $x=\\pi/2$ 处与曲线相切）</p>
+          <p><b>$b$ 的最小值</b>：直线"压"曲线时的临界斜率（直线在 $x=\\pi/2$ 处与曲线相切）</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">2</span>求 $a$ 的最大值</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>令 $h(x) = f(x) - a(\\pi-x)$，需 $h(x) \\geq 0$ 在 $(0,\\pi)$ 恒成立。</p>
+          <p>由对称性，极值点位于 $x = \\pi/2$。临界条件：$h(\\pi/2) = 0$ 且 $h'(\\pi/2) = 0$。</p>
+          <div class="formula">
+            $h(\\pi/2) = \\dfrac{2}{\\pi} - a \\cdot \\dfrac{\\pi}{2} = 0$
+          </div>
+          <p>解得：$a = \\dfrac{4}{\\pi^2}$</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">3</span>求 $b$ 的最小值</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>类似地，令 $h(x) = b(\\pi-x) - f(x)$，需 $h(x) \\geq 0$ 恒成立。</p>
+          <p>临界条件：$h(\\pi/2) = 0$ 且 $h'(\\pi/2) = 0$。</p>
+          <div class="formula">
+            $h(\\pi/2) = b \\cdot \\dfrac{\\pi}{2} - \\dfrac{2}{\\pi} = 0$
+          </div>
+          <p>解得：$b = \\dfrac{4}{\\pi^2}$</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">4</span>交互验证</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>拖动滑块寻找直线与曲线相切的临界状态：</p>
+          <div class="control-row">
+            <label>参数 a</label>
+            <input type="range" id="slider-a" min="0" max=1" step="0.005" value="0.405">
+            <span class="val-display" id="val-a">0.405</span>
+          </div>
+          <div class="control-row">
+            <label>参数 b</label>
+            <input type="range" id="slider-b" min="0" max="1" step="0.005" value="0.405">
+            <span class="val-display" id="val-b">0.405</span>
+          </div>
+          <p style="font-size:.78rem; color:#64748b;">理论值：$a = b = \\dfrac{4}{\\pi^2} \\approx 0.4053$</p>
+          <p style="font-size:.78rem; color:#16a34a;">当间隙 = 0 时，直线与曲线相切</p>
+        </div>
+      </div>
+
+      <div class="answer-box">
+        <b>✅ 答案：</b>$a_{\\max} = \\dfrac{4}{\\pi^2}$，$b_{\\min} = \\dfrac{4}{\\pi^2}$
+      </div>
+    `;
+    setTimeout(() => {
+      const sa = document.getElementById('slider-a');
+      const sb = document.getElementById('slider-b');
+      const va = document.getElementById('val-a');
+      const vb = document.getElementById('val-b');
+      sa.addEventListener('input', e => { paramA = parseFloat(e.target.value); va.textContent = paramA.toFixed(3); });
+      sb.addEventListener('input', e => { paramB = parseFloat(e.target.value); vb.textContent = paramB.toFixed(3); });
+      if (window.MathJax) MathJax.typesetPromise([area]);
+    }, 0);
+  }
+}
+
+renderContent();
 </script>
+
 </body>
 </html>
