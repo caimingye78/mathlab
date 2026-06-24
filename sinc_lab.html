@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>导数动态实验室 · sinc 函数完整解题课</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    svg: { fontCache: 'global' }
+  };
+</script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
   :root { --primary:#2563eb; --bg:#f8fafc; --panel:#fff; --accent:#ef4444; --green:#10b981; --orange:#f59e0b; --purple:#8b5cf6; }
@@ -12,7 +21,7 @@
   html,body { height:100%; overflow:hidden; }
   body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); display:flex; }
 
-  #sidebar { width:380px; min-width:380px; background:var(--panel); border-right:1px solid #e2e8f0; overflow-y:auto; box-shadow:2px 0 10px rgba(0,0,0,.05); z-index:10; }
+  #sidebar { width:420px; min-width:420px; background:var(--panel); border-right:1px solid #e2e8f0; overflow-y:auto; box-shadow:2px 0 10px rgba(0,0,0,.05); z-index:10; }
   #sidebar::-webkit-scrollbar { width:6px; }
   #sidebar::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
 
@@ -24,29 +33,32 @@
   .q-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-weight:600; font-size:.85rem; color:#64748b; transition:.2s; border-bottom:3px solid transparent; }
   .q-tab.active { background:#fff; color:var(--primary); border-bottom-color:var(--primary); }
 
-  .content { padding:20px; }
+  .content { padding:18px; }
 
-  .problem-box { background:#fef3c7; border-left:4px solid var(--orange); padding:12px; border-radius:6px; margin-bottom:16px; font-size:.85rem; line-height:1.6; }
+  .problem-box { background:#fef3c7; border-left:4px solid var(--orange); padding:14px; border-radius:6px; margin-bottom:16px; font-size:.85rem; line-height:1.7; }
   .problem-box b { color:#92400e; }
 
-  .step-card { background:#fff; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px; overflow:hidden; transition:.2s; }
+  .step-card { background:#fff; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:10px; overflow:hidden; transition:.2s; }
   .step-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
   .step-header { padding:10px 14px; background:#f8fafc; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
   .step-header:hover { background:#f1f5f9; }
-  .step-title { font-weight:600; color:#1e293b; font-size:.88rem; display:flex; align-items:center; gap:8px; }
-  .step-num { background:var(--primary); color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; }
-  .step-arrow { color:#94a3b8; transition:transform .2s; }
+  .step-title { font-weight:600; color:#1e293b; font-size:.86rem; display:flex; align-items:center; gap:8px; }
+  .step-num { background:var(--primary); color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:.72rem; flex-shrink:0; }
+  .step-arrow { color:#94a3b8; transition:transform .2s; font-size:.7rem; }
   .step-card.open .step-arrow { transform:rotate(90deg); }
-  .step-body { padding:14px; font-size:.85rem; line-height:1.7; color:#334155; display:none; border-top:1px solid #e2e8f0; }
+  .step-body { padding:14px; font-size:.84rem; line-height:1.8; color:#334155; display:none; border-top:1px solid #e2e8f0; }
   .step-card.open .step-body { display:block; }
-  .step-body .formula { background:#eff6ff; padding:8px 12px; border-radius:6px; margin:8px 0; font-family:monospace; }
+  .step-body p { margin-bottom:8px; }
+  .step-body .formula { background:#eff6ff; padding:10px 14px; border-radius:6px; margin:8px 0; overflow-x:auto; }
+  .step-body .tip { background:#f0fdf4; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:.8rem; color:#166534; border-left:3px solid var(--green); }
+  .step-body .warn { background:#fef2f2; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:.8rem; color:#991b1b; border-left:3px solid var(--accent); }
 
-  .control-row { display:flex; gap:8px; align-items:center; margin:8px 0; }
+  .control-row { display:flex; gap:8px; align-items:center; margin:10px 0; }
   .control-row label { font-size:.82rem; color:#475569; min-width:60px; }
   .control-row input[type=range] { flex:1; }
   .val-display { font-family:monospace; color:var(--primary); font-weight:bold; min-width:60px; text-align:right; font-size:.85rem; }
 
-  .answer-box { background:#dcfce7; border-left:4px solid var(--green); padding:12px; border-radius:6px; margin-top:12px; font-size:.9rem; }
+  .answer-box { background:#dcfce7; border-left:4px solid var(--green); padding:14px; border-radius:6px; margin-top:12px; font-size:.88rem; line-height:1.7; }
   .answer-box b { color:#166534; }
 
   #main { flex:1; position:relative; }
@@ -62,7 +74,7 @@
 <div id="sidebar">
   <div class="header">
     <h2>🎵 导数动态实验室</h2>
-    <div class="sub">浙江杭州 26 届高二下 6 月质检 · T18</div>
+    <div class="sub">sinc 函数 $f(x)=\dfrac{\sin x}{x}$ · 完整解题课</div>
   </div>
 
   <div class="q-tabs">
@@ -71,9 +83,7 @@
     <div class="q-tab" data-q="3" onclick="switchQuestion(3)">第(3)问</div>
   </div>
 
-  <div class="content" id="content-area">
-    <!-- 内容由 JS 动态生成 -->
-  </div>
+  <div class="content" id="content-area"></div>
 </div>
 
 <div id="main">
@@ -84,10 +94,9 @@
     <div class="row">f'(x): <b id="dk">—</b></div>
   </div>
   <div id="footer">
-    💡 切换左侧问题标签查看完整解题过程 ｜ 拖动滑块验证结论 ｜ 红点=切点，绿点=极值点
+    💡 切换左侧标签查看完整推导 ｜ 拖动滑块验证结论 ｜ 红点=切点，绿点=极值点
   </div>
 </div>
-
 <script>
 /* ====== 数学核心 ====== */
 const f  = x => Math.abs(x) < 1e-10 ? 1 : Math.sin(x) / x;
@@ -95,6 +104,7 @@ const df = x => {
   if (Math.abs(x) < 1e-7) return 0;
   return (x * Math.cos(x) - Math.sin(x)) / (x * x);
 };
+const g = x => f(x) / (Math.PI - x);
 
 function findExtrema(xmin, xmax, step) {
   const roots = [];
@@ -128,80 +138,63 @@ window.addEventListener('resize', resize);
 requestAnimationFrame(() => { resize(); draw(); });
 
 let currentQ = 1;
-let mouseX = 0, mouseY = 0, mouseInside = false;
-let paramA = 0.5, paramB = 0;
 let tangentX = Math.PI;
-let symmetryX = 1.0;
+let symmetryX = 0.8;
+let paramA = 0.318, paramB = 0.405;
 let extrema = findExtrema(-20, 20, 0.002);
 
 const toPxX = x => W / 2 + x * SCALE;
 const toPxY = y => H / 2 - y * SCALE;
 const toMathX = px => (px - W / 2) / SCALE;
-const toMathY = py => (H / 2 - py) / SCALE;
 
 function drawAxes() {
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
-  ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+  ctx.moveTo(0, H/2); ctx.lineTo(W, H/2);
+  ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H);
   ctx.stroke();
-
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '11px monospace';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px monospace'; ctx.textAlign = 'center';
   for (let i = -20; i <= 20; i++) {
     if (i === 0) continue;
     const px = toPxX(i);
     if (px > 10 && px < W - 10) {
       ctx.beginPath(); ctx.moveTo(px, H/2 - 4); ctx.lineTo(px, H/2 + 4); ctx.stroke();
-      ctx.fillText(i, px, H / 2 + 16);
+      ctx.fillText(i, px, H/2 + 16);
     }
     const py = toPxY(i);
     if (py > 10 && py < H - 10) {
       ctx.beginPath(); ctx.moveTo(W/2 - 4, py); ctx.lineTo(W/2 + 4, py); ctx.stroke();
-      ctx.textAlign = 'right';
-      ctx.fillText(i, W / 2 - 8, py + 4);
-      ctx.textAlign = 'center';
+      ctx.textAlign = 'right'; ctx.fillText(i, W/2 - 8, py + 4); ctx.textAlign = 'center';
     }
   }
   const piPx = toPxX(Math.PI);
   if (piPx < W - 20) {
-    ctx.fillStyle = '#64748b';
-    ctx.fillText('π', piPx, H / 2 + 16);
+    ctx.fillStyle = '#64748b'; ctx.fillText('π', piPx, H/2 + 16);
     ctx.strokeStyle = '#64748b';
     ctx.beginPath(); ctx.moveTo(piPx, H/2 - 5); ctx.lineTo(piPx, H/2 + 5); ctx.stroke();
   }
   const pi2Px = toPxX(Math.PI / 2);
   if (pi2Px < W - 20) {
-    ctx.fillStyle = '#8b5cf6';
-    ctx.fillText('π/2', pi2Px, H / 2 + 16);
-    ctx.strokeStyle = '#8b5cf6';
-    ctx.setLineDash([3, 3]);
+    ctx.fillStyle = '#8b5cf6'; ctx.fillText('π/2', pi2Px, H/2 + 16);
+    ctx.strokeStyle = '#8b5cf6'; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.moveTo(pi2Px, 0); ctx.lineTo(pi2Px, H); ctx.stroke();
     ctx.setLineDash([]);
   }
 }
 
 function drawCurve() {
-  ctx.strokeStyle = '#2563eb';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
+  ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.5; ctx.beginPath();
   let started = false;
   for (let px = 0; px <= W; px += 1) {
-    const x = toMathX(px);
-    const y = f(x);
-    const py = toPxY(y);
+    const x = toMathX(px), y = f(x), py = toPxY(y);
     if (py < -100 || py > H + 100) { started = false; continue; }
-    if (!started) { ctx.moveTo(px, py); started = true; }
-    else { ctx.lineTo(px, py); }
+    if (!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
   }
   ctx.stroke();
 }
 
 function drawExtrema() {
-  ctx.fillStyle = '#10b981';
-  ctx.strokeStyle = '#059669';
+  ctx.fillStyle = '#10b981'; ctx.strokeStyle = '#059669';
   for (const x of extrema) {
     if (Math.abs(x) < 0.1) continue;
     const px = toPxX(x), py = toPxY(f(x));
@@ -212,96 +205,59 @@ function drawExtrema() {
 }
 
 function drawQ1() {
-  const x0 = tangentX;
-  const y0 = f(x0);
-  const k = df(x0);
-  const b = y0 - k * x0;
-
-  ctx.strokeStyle = '#f59e0b';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 4]);
+  const x0 = tangentX, y0 = f(x0), k = df(x0), b = y0 - k * x0;
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
   ctx.beginPath();
   ctx.moveTo(0, toPxY(k * toMathX(0) + b));
   ctx.lineTo(W, toPxY(k * toMathX(W) + b));
-  ctx.stroke();
-  ctx.setLineDash([]);
-
+  ctx.stroke(); ctx.setLineDash([]);
   const pX = toPxX(x0), pY = toPxY(y0);
-  ctx.fillStyle = '#ef4444';
-  ctx.beginPath(); ctx.arc(pX, pY, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(pX, pY, 7, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-
-  ctx.fillStyle = '#dc2626';
-  ctx.beginPath(); ctx.arc(toPxX(Math.PI), toPxY(0), 6, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#dc2626';
-  ctx.font = 'bold 13px sans-serif';
-  ctx.textAlign = 'left';
+  ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.arc(toPxX(Math.PI), toPxY(0), 6, 0, Math.PI * 2); ctx.fill();
+  ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
   ctx.fillText('M(π, 0)', toPxX(Math.PI) + 10, toPxY(0) - 8);
   ctx.textAlign = 'center';
-
   document.getElementById('dx').textContent = x0.toFixed(4);
   document.getElementById('dy').textContent = y0.toFixed(4);
   document.getElementById('dk').textContent = k.toFixed(4);
 }
 
 function drawQ2() {
-  const x = symmetryX;
-  const mirrorX = Math.PI - x;
-  const y1 = f(x);
-  const y2 = f(mirrorX);
-
+  const x = symmetryX, mirrorX = Math.PI - x;
+  const y1 = f(x), y2 = f(mirrorX);
   const p1X = toPxX(x), p1Y = toPxY(y1);
   const p2X = toPxX(mirrorX), p2Y = toPxY(y2);
-
-  ctx.strokeStyle = '#8b5cf6';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
   ctx.beginPath(); ctx.moveTo(p1X, p1Y); ctx.lineTo(p2X, p2Y); ctx.stroke();
   ctx.setLineDash([]);
-
   ctx.fillStyle = '#8b5cf6';
   ctx.beginPath(); ctx.arc(p1X, p1Y, 6, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.arc(p2X, p2Y, 6, 0, Math.PI * 2); ctx.fill();
-
-  ctx.fillStyle = '#7c3aed';
-  ctx.font = 'bold 12px sans-serif';
+  ctx.fillStyle = '#7c3aed'; ctx.font = 'bold 12px sans-serif';
   ctx.textAlign = 'right';
   ctx.fillText(`f(${x.toFixed(2)})=${y1.toFixed(4)}`, p1X - 8, p1Y - 8);
   ctx.textAlign = 'left';
   ctx.fillText(`f(${mirrorX.toFixed(2)})=${y2.toFixed(4)}`, p2X + 8, p2Y - 8);
   ctx.textAlign = 'center';
-
   document.getElementById('dx').textContent = x.toFixed(3);
   document.getElementById('dy').textContent = y1.toFixed(4);
   document.getElementById('dk').textContent = (y1 - y2).toExponential(2);
 }
 
 function drawQ3() {
-  const k = -paramA;
-  const b = paramA * Math.PI + paramB;
-
-  ctx.strokeStyle = '#10b981';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
+  const k = -paramA, b = paramA * Math.PI + paramB;
+  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2.5; ctx.beginPath();
   ctx.moveTo(0, toPxY(k * toMathX(0) + b));
   ctx.lineTo(W, toPxY(k * toMathX(W) + b));
   ctx.stroke();
-
-  const pi2X = Math.PI / 2;
-  const pi2Px = toPxX(pi2X);
-  const curveY = f(pi2X);
-  const lineY = paramA * (Math.PI - pi2X) + paramB;
-
-  ctx.fillStyle = '#dc2626';
-  ctx.beginPath(); ctx.arc(pi2Px, toPxY(curveY), 6, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#059669';
-  ctx.beginPath(); ctx.arc(pi2Px, toPxY(lineY), 6, 0, Math.PI * 2); ctx.fill();
-
+  const pi2X = Math.PI / 2, pi2Px = toPxX(pi2X);
+  const curveY = f(pi2X), lineY = paramA * (Math.PI - pi2X) + paramB;
+  ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.arc(pi2Px, toPxY(curveY), 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#059669'; ctx.beginPath(); ctx.arc(pi2Px, toPxY(lineY), 6, 0, Math.PI * 2); ctx.fill();
   const gap = curveY - lineY;
-  ctx.fillStyle = gap >= 0 ? '#16a34a' : '#dc2626';
-  ctx.font = 'bold 13px sans-serif';
+  ctx.fillStyle = gap >= 0 ? '#16a34a' : '#dc2626'; ctx.font = 'bold 13px sans-serif';
   ctx.fillText(`间隙: ${gap.toFixed(4)}`, pi2Px + 12, toPxY((curveY + lineY) / 2));
-
   document.getElementById('dx').textContent = pi2X.toFixed(4);
   document.getElementById('dy').textContent = curveY.toFixed(4);
   document.getElementById('dk').textContent = `a=${paramA.toFixed(3)}, b=${paramB.toFixed(3)}`;
@@ -309,92 +265,86 @@ function drawQ3() {
 
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  drawAxes();
-  drawCurve();
-  drawExtrema();
+  drawAxes(); drawCurve(); drawExtrema();
   if (currentQ === 1) drawQ1();
   else if (currentQ === 2) drawQ2();
   else drawQ3();
   requestAnimationFrame(draw);
 }
 
-canvas.addEventListener('mousemove', e => {
-  const r = canvas.getBoundingClientRect();
-  mouseX = e.clientX - r.left;
-  mouseY = e.clientY - r.top;
-  mouseInside = true;
-});
-canvas.addEventListener('mouseleave', () => { mouseInside = false; });
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  const r = canvas.getBoundingClientRect();
-  const t = e.touches[0];
-  mouseX = t.clientX - r.left;
-  mouseY = t.clientY - r.top;
-  mouseInside = true;
-}, { passive: false });
-
 function switchQuestion(q) {
   currentQ = q;
   document.querySelectorAll('.q-tab').forEach(t => t.classList.toggle('active', parseInt(t.dataset.q) === q));
   renderContent();
 }
-
-function toggleStep(card) {
-  card.classList.toggle('open');
-}
-
+function toggleStep(card) { card.classList.toggle('open'); }
 function renderContent() {
   const area = document.getElementById('content-area');
   if (currentQ === 1) {
     area.innerHTML = `
       <div class="problem-box">
-        <b>第(1)问：</b>求曲线 $y=f(x)=\\dfrac{\\sin x}{x}$ 在点 $M(\\pi, 0)$ 处的切线方程。
+        <b>第(1)问：</b>已知函数 $f(x)=\\dfrac{\\sin x}{x}$，求曲线 $y=f(x)$ 在点 $M(\\pi, 0)$ 处的切线方程。
       </div>
 
       <div class="step-card open">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">1</span>思路引导</div>
+          <div class="step-title"><span class="step-num">1</span>明确切线方程公式</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          切线方程公式：$y - y_0 = f'(x_0)(x - x_0)$<br>
-          需要求两个量：<b>切点坐标</b> 和 <b>导数值</b>。<br>
-          切点已知为 $M(\\pi, 0)$，所以只需计算 $f'(\\pi)$。
+          <p>曲线 $y=f(x)$ 在点 $(x_0, y_0)$ 处的切线方程为：</p>
+          <div class="formula">$$y - y_0 = f'(x_0)\\,(x - x_0)$$</div>
+          <p>因此需要确定两个量：</p>
+          <p>① <b>切点坐标</b> $(x_0, y_0)$ —— 题目已给出 $M(\\pi, 0)$，即 $x_0=\\pi$，$y_0=f(\\pi)=0$。</p>
+          <p>② <b>切点处的导数值</b> $f'(x_0)=f'(\\pi)$ —— 这是接下来要计算的核心。</p>
+          <div class="tip">💡 切线斜率 = 切点处的导数值。这是导数几何意义的核心。</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">2</span>求导公式</div>
+          <div class="step-title"><span class="step-num">2</span>求 $f(x)$ 的导数</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          $$f(x) = \\frac{\\sin x}{x}$$
-          $$f'(x) = \\frac{x\\cos x - \\sin x}{x^2}$$
+          <p>$f(x)=\\dfrac{\\sin x}{x}$ 是两个函数的商，使用<b>商的求导法则</b>：</p>
+          <div class="formula">$$\\left(\\frac{u}{v}\\right)' = \\frac{u'v - uv'}{v^2}$$</div>
+          <p>这里 $u=\\sin x$，$v=x$，所以 $u'=\\cos x$，$v'=1$。代入：</p>
+          <div class="formula">$$f'(x) = \\frac{\\cos x \\cdot x - \\sin x \\cdot 1}{x^2} = \\frac{x\\cos x - \\sin x}{x^2}$$</div>
+          <div class="warn">⚠️ 注意：$x=0$ 时 $f(x)$ 本身无定义，但 $\\lim_{x\\to 0}f(x)=1$。本题切点在 $x=\\pi$，不涉及此问题。</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">3</span>代入计算</div>
+          <div class="step-title"><span class="step-num">3</span>代入 $x_0=\\pi$ 计算斜率</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <div class="formula">
-            $f'(\\pi) = \\dfrac{\\pi\\cos\\pi - \\sin\\pi}{\\pi^2} = \\dfrac{\\pi \\cdot (-1) - 0}{\\pi^2} = -\\dfrac{1}{\\pi}$
-          </div>
+          <p>将 $x=\\pi$ 代入导数表达式：</p>
+          <div class="formula">$$f'(\\pi) = \\frac{\\pi\\cos\\pi - \\sin\\pi}{\\pi^2}$$</div>
+          <p>计算各项：</p>
+          <p>• $\\cos\\pi = -1$</p>
+          <p>• $\\sin\\pi = 0$</p>
+          <p>代入：</p>
+          <div class="formula">$$f'(\\pi) = \\frac{\\pi \\cdot (-1) - 0}{\\pi^2} = \\frac{-\\pi}{\\pi^2} = -\\frac{1}{\\pi}$$</div>
+          <p>所以切线斜率 $k = f'(\\pi) = -\\dfrac{1}{\\pi} \\approx -0.3183$。</p>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">4</span>切线方程</div>
+          <div class="step-title"><span class="step-num">4</span>写出切线方程</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          $$y - 0 = -\\frac{1}{\\pi}(x - \\pi)$$
-          $$\\boxed{y = -\\frac{1}{\\pi}x + 1}$$
+          <p>已知切点 $(\\pi, 0)$，斜率 $k=-\\dfrac{1}{\\pi}$，代入点斜式：</p>
+          <div class="formula">$$y - 0 = -\\frac{1}{\\pi}(x - \\pi)$$</div>
+          <p>展开化简：</p>
+          <div class="formula">$$y = -\\frac{1}{\\pi}x + \\frac{\\pi}{\\pi} = -\\frac{1}{\\pi}x + 1$$</div>
+          <p>即：</p>
+          <div class="formula">$$\\boxed{y = -\\frac{1}{\\pi}x + 1}$$</div>
+          <div class="tip">💡 验证：切线在 $x=\\pi$ 时 $y=-\\frac{1}{\\pi}\\cdot\\pi+1=-1+1=0$ ✓ 确实过点 $M(\\pi,0)$。</div>
         </div>
       </div>
 
@@ -404,117 +354,135 @@ function renderContent() {
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>拖动滑块改变切点位置，观察切线斜率变化：</p>
+          <p>拖动滑块改变切点 $x_0$，观察切线（橙色虚线）与斜率的变化：</p>
           <div class="control-row">
-            <label>切点 x₀</label>
-            <input type="range" id="tangent-slider" min="0.1" max="6.28" step="0.01" value="3.14159">
+            <label>切点 $x_0$</label>
+            <input type="range" id="tangent-slider" min="0.3" max="6.28" step="0.01" value="3.14159">
             <span class="val-display" id="tangent-val">3.14</span>
           </div>
-          <p style="font-size:.78rem; color:#64748b;">当 $x_0 = \\pi$ 时，斜率应为 $-\\dfrac{1}{\\pi} \\approx -0.318$</p>
+          <p style="font-size:.8rem; color:#64748b;">当 $x_0=\\pi$ 时，斜率应等于 $-\\dfrac{1}{\\pi}\\approx -0.3183$。</p>
+          <p style="font-size:.8rem; color:#64748b;">观察右上角数据面板的 f'(x) 值是否吻合。</p>
         </div>
       </div>
 
       <div class="answer-box">
-        <b>✅ 答案：</b>$y = -\\dfrac{1}{\\pi}x + 1$
+        <b>✅ 最终答案：</b>切线方程为 $y = -\\dfrac{1}{\\pi}x + 1$。
       </div>
     `;
     setTimeout(() => {
       const slider = document.getElementById('tangent-slider');
       const val = document.getElementById('tangent-val');
-      slider.addEventListener('input', e => {
-        tangentX = parseFloat(e.target.value);
-        val.textContent = tangentX.toFixed(3);
-      });
+      slider.addEventListener('input', e => { tangentX = parseFloat(e.target.value); val.textContent = tangentX.toFixed(3); });
       if (window.MathJax) MathJax.typesetPromise([area]);
     }, 0);
   }
-
   else if (currentQ === 2) {
     area.innerHTML = `
       <div class="problem-box">
-        <b>第(2)问：</b>证明曲线 $y=\\dfrac{f(x)}{\\pi-x}$ 是轴对称图形。
+        <b>第(2)问：</b>设 $g(x)=\\dfrac{f(x)}{\\pi-x}$，证明曲线 $y=g(x)$ 是轴对称图形，并求其对称轴。
       </div>
 
       <div class="step-card open">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">1</span>思路引导</div>
+          <div class="step-title"><span class="step-num">1</span>理解"轴对称图形"</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          轴对称图形 ⟺ 存在常数 $a$，使得 $g(a+x) = g(a-x)$<br>
-          对于 $g(x) = \\dfrac{f(x)}{\\pi-x}$，猜测对称轴为 $x = \\dfrac{\\pi}{2}$<br>
-          需验证：$g\\left(\\dfrac{\\pi}{2}+t\\right) = g\\left(\\dfrac{\\pi}{2}-t\\right)$
+          <p>曲线 $y=g(x)$ 关于直线 $x=a$ 对称，等价于：</p>
+          <div class="formula">$$g(a+t) = g(a-t), \\quad \\forall t$$</div>
+          <p>即对称轴两侧等距的点，函数值相等。</p>
+          <p>现在需要<b>猜出对称轴</b> $x=a$。观察 $g(x)=\\dfrac{f(x)}{\\pi-x}$ 的结构：</p>
+          <p>• 分母 $\\pi - x$ 关于 $x=\\dfrac{\\pi}{2}$ 对称（因为 $\\pi-(\\frac{\\pi}{2}+t)=\\frac{\\pi}{2}-t$）</p>
+          <p>• 分子 $f(x)=\\dfrac{\\sin x}{x}$ 本身不一定对称，但与分母组合后可能产生对称性</p>
+          <div class="tip">💡 合理猜测：对称轴为 $x=\\dfrac{\\pi}{2}$。接下来严格验证 $g\\!\\left(\\frac{\\pi}{2}+t\\right)=g\\!\\left(\\frac{\\pi}{2}-t\\right)$。</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">2</span>计算 $g(\\pi/2+t)$</div>
+          <div class="step-title"><span class="step-num">2</span>化简 $g(x)$ 的表达式</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          $$g\\left(\\frac{\\pi}{2}+t\\right) = \\frac{f\\left(\\frac{\\pi}{2}+t\\right)}{\\pi - \\left(\\frac{\\pi}{2}+t\\right)} = \\frac{f\\left(\\frac{\\pi}{2}+t\\right)}{\\frac{\\pi}{2}-t}$$
+          <p>先写出 $g(x)$ 的完整形式：</p>
+          <div class="formula">$$g(x) = \\frac{f(x)}{\\pi - x} = \\frac{\\sin x}{x(\\pi - x)}$$</div>
+          <p>这个形式更便于后续代入计算。注意定义域 $x \\neq 0$ 且 $x \\neq \\pi$。</p>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">3</span>计算 $g(\\pi/2-t)$</div>
+          <div class="step-title"><span class="step-num">3</span>计算 $g\\!\\left(\\frac{\\pi}{2}+t\\right)$</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          $$g\\left(\\frac{\\pi}{2}-t\\right) = \\frac{f\\left(\\frac{\\pi}{2}-t\\right)}{\\pi - \\left(\\frac{\\pi}{2}-t\\right)} = \\frac{f\\left(\\frac{\\pi}{2}-t\\right)}{\\frac{\\pi}{2}+t}$$
+          <p>令 $x=\\dfrac{\\pi}{2}+t$，代入 $g(x)=\\dfrac{\\sin x}{x(\\pi-x)}$：</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}+t\\right) = \\frac{\\sin\\!\\left(\\frac{\\pi}{2}+t\\right)}{\\left(\\frac{\\pi}{2}+t\\right)\\!\\left(\\pi - \\frac{\\pi}{2} - t\\right)}$$</div>
+          <p>利用诱导公式 $\\sin\\!\\left(\\frac{\\pi}{2}+t\\right)=\\cos t$，并化简分母：</p>
+          <p>• 分母第一项：$\\dfrac{\\pi}{2}+t$</p>
+          <p>• 分母第二项：$\\pi-\\dfrac{\\pi}{2}-t = \\dfrac{\\pi}{2}-t$</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}+t\\right) = \\frac{\\cos t}{\\left(\\frac{\\pi}{2}+t\\right)\\!\\left(\\frac{\\pi}{2}-t\\right)}$$</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">4</span>利用 $f$ 的对称性</div>
+          <div class="step-title"><span class="step-num">4</span>计算 $g\\!\\left(\\frac{\\pi}{2}-t\\right)$</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>由 $f(x) = \\dfrac{\\sin x}{x}$，注意：</p>
-          <div class="formula">
-            $f\\left(\\frac{\\pi}{2}+t\\right) = \\frac{\\sin(\\frac{\\pi}{2}+t)}{\\frac{\\pi}{2}+t} = \\frac{\\cos t}{\\frac{\\pi}{2}+t}$
-          </div>
-          <div class="formula">
-            $f\\left(\\frac{\\pi}{2}-t\\right) = \\frac{\\sin(\\frac{\\pi}{2}-t)}{\\frac{\\pi}{2}-t} = \\frac{\\cos t}{\\frac{\\pi}{2}-t}$
-          </div>
-          <p>代入后两个表达式相等。</p>
+          <p>令 $x=\\dfrac{\\pi}{2}-t$，同样代入：</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}-t\\right) = \\frac{\\sin\\!\\left(\\frac{\\pi}{2}-t\\right)}{\\left(\\frac{\\pi}{2}-t\\right)\\!\\left(\\pi - \\frac{\\pi}{2} + t\\right)}$$</div>
+          <p>利用诱导公式 $\\sin\\!\\left(\\frac{\\pi}{2}-t\\right)=\\cos t$，化简分母：</p>
+          <p>• 分母第一项：$\\dfrac{\\pi}{2}-t$</p>
+          <p>• 分母第二项：$\\pi-\\dfrac{\\pi}{2}+t = \\dfrac{\\pi}{2}+t$</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}-t\\right) = \\frac{\\cos t}{\\left(\\frac{\\pi}{2}-t\\right)\\!\\left(\\frac{\\pi}{2}+t\\right)}$$</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">5</span>交互验证</div>
+          <div class="step-title"><span class="step-num">5</span>比较两式，得出结论</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>拖动滑块，观察左右两侧函数值相等：</p>
+          <p>对比第3步和第4步的结果：</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}+t\\right) = \\frac{\\cos t}{\\left(\\frac{\\pi}{2}+t\\right)\\!\\left(\\frac{\\pi}{2}-t\\right)}$$</div>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}-t\\right) = \\frac{\\cos t}{\\left(\\frac{\\pi}{2}-t\\right)\\!\\left(\\frac{\\pi}{2}+t\\right)}$$</div>
+          <p>两个表达式的分子相同（都是 $\\cos t$），分母也相同（乘法可交换），因此：</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}+t\\right) = g\\!\\left(\\frac{\\pi}{2}-t\\right), \\quad \\forall t$$</div>
+          <p>由轴对称的定义，曲线 $y=g(x)$ 关于直线 $x=\\dfrac{\\pi}{2}$ 对称。$\\blacksquare$</p>
+          <div class="tip">💡 关键技巧：分母 $x(\\pi-x)$ 在 $x=\\frac{\\pi}{2}$ 处对称（$\\frac{\\pi}{2}+t$ 与 $\\frac{\\pi}{2}-t$ 互换），分子 $\\sin x$ 经诱导公式也变成相同的 $\\cos t$，两者配合产生对称性。</div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">6</span>交互验证</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>拖动滑块改变 $t$ 值，观察 $\\frac{\\pi}{2}$ 两侧点的函数值是否相等：</p>
           <div class="control-row">
-            <label>位置 t</label>
-            <input type="range" id="symmetry-slider" min="0.01" max="1.5" step="0.01" value="0.5">
-            <span class="val-display" id="symmetry-val">0.50</span>
+            <label>参数 $t$</label>
+            <input type="range" id="symmetry-slider" min="0.05" max="1.4" step="0.01" value="0.8">
+            <span class="val-display" id="symmetry-val">0.80</span>
           </div>
-          <p style="font-size:.78rem; color:#64748b;">紫色虚线 = 对称轴 $x=\\pi/2$</p>
+          <p style="font-size:.8rem; color:#64748b;">紫色虚线 = 对称轴 $x=\\frac{\\pi}{2}$。两个紫点应始终等高。</p>
         </div>
       </div>
 
       <div class="answer-box">
-        <b>✅ 结论：</b>曲线关于直线 $x = \\dfrac{\\pi}{2}$ 对称。
+        <b>✅ 结论：</b>曲线 $y=g(x)$ 关于直线 $x=\\dfrac{\\pi}{2}$ 对称。
       </div>
     `;
     setTimeout(() => {
       const slider = document.getElementById('symmetry-slider');
       const val = document.getElementById('symmetry-val');
-      slider.addEventListener('input', e => {
-        symmetryX = parseFloat(e.target.value);
-        val.textContent = symmetryX.toFixed(2);
-      });
+      slider.addEventListener('input', e => { symmetryX = parseFloat(e.target.value); val.textContent = symmetryX.toFixed(2); });
       if (window.MathJax) MathJax.typesetPromise([area]);
     }, 0);
   }
-
   else {
     area.innerHTML = `
       <div class="problem-box">
@@ -523,70 +491,125 @@ function renderContent() {
 
       <div class="step-card open">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">1</span>思路引导</div>
+          <div class="step-title"><span class="step-num">1</span>转化不等式</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>不等式等价于：直线 $y = a(\\pi-x)$ 在曲线下方，$y = b(\\pi-x)$ 在曲线上方。</p>
-          <p><b>$a$ 的最大值</b>：直线"顶"曲线时的临界斜率（直线在 $x=\\pi/2$ 处与曲线相切）</p>
-          <p><b>$b$ 的最小值</b>：直线"压"曲线时的临界斜率（直线在 $x=\\pi/2$ 处与曲线相切）</p>
+          <p>原不等式 $a(\\pi-x) \\leq f(x) \\leq b(\\pi-x)$，在 $x\\in(0,\\pi)$ 时 $\\pi-x>0$，可同除以 $\\pi-x$：</p>
+          <div class="formula">$$a \\leq \\frac{f(x)}{\\pi - x} \\leq b, \\quad \\forall x \\in (0,\\pi)$$</div>
+          <p>即 $a \\leq g(x) \\leq b$ 恒成立，其中 $g(x)=\\dfrac{f(x)}{\\pi-x}$（第2问已定义）。</p>
+          <div class="tip">💡 这等价于：$a$ 不超过 $g(x)$ 的最小值，$b$ 不小于 $g(x)$ 的最大值。<br>即 $a_{\\max} = \\min g(x)$，$b_{\\min} = \\max g(x)$。</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">2</span>求 $a$ 的最大值</div>
+          <div class="step-title"><span class="step-num">2</span>利用对称性简化</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>令 $h(x) = f(x) - a(\\pi-x)$，需 $h(x) \\geq 0$ 在 $(0,\\pi)$ 恒成立。</p>
-          <p>由对称性，极值点位于 $x = \\pi/2$。临界条件：$h(\\pi/2) = 0$ 且 $h'(\\pi/2) = 0$。</p>
-          <div class="formula">
-            $h(\\pi/2) = \\dfrac{2}{\\pi} - a \\cdot \\dfrac{\\pi}{2} = 0$
-          </div>
-          <p>解得：$a = \\dfrac{4}{\\pi^2}$</p>
+          <p>由第(2)问，$g(x)$ 关于 $x=\\dfrac{\\pi}{2}$ 对称，因此只需研究 $x\\in\\left(0,\\frac{\\pi}{2}\\right]$ 上的最值，另一半由对称性给出。</p>
+          <p>又因 $g(x)$ 在 $(0,\\pi)$ 上连续（$f(x)$ 连续且 $\\pi-x\\neq 0$），最值存在。</p>
+          <p>接下来求 $g(x)$ 的导数，找极值点。</p>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">3</span>求 $b$ 的最小值</div>
+          <div class="step-title"><span class="step-num">3</span>求 $g'(x)$</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>类似地，令 $h(x) = b(\\pi-x) - f(x)$，需 $h(x) \\geq 0$ 恒成立。</p>
-          <p>临界条件：$h(\\pi/2) = 0$ 且 $h'(\\pi/2) = 0$。</p>
-          <div class="formula">
-            $h(\\pi/2) = b \\cdot \\dfrac{\\pi}{2} - \\dfrac{2}{\\pi} = 0$
-          </div>
-          <p>解得：$b = \\dfrac{4}{\\pi^2}$</p>
+          <p>$g(x)=\\dfrac{\\sin x}{x(\\pi-x)}$，记分母 $D(x)=x(\\pi-x)=\\pi x - x^2$，则 $D'(x)=\\pi-2x$。</p>
+          <p>用商的求导法则：</p>
+          <div class="formula">$$g'(x) = \\frac{\\cos x \\cdot D(x) - \\sin x \\cdot D'(x)}{D(x)^2}$$</div>
+          <p>代入 $D(x)$ 和 $D'(x)$：</p>
+          <div class="formula">$$g'(x) = \\frac{\\cos x \\cdot x(\\pi-x) - \\sin x \\cdot (\\pi - 2x)}{x^2(\\pi-x)^2}$$</div>
+          <p>令 $g'(x)=0$，即分子为零：</p>
+          <div class="formula">$$x(\\pi-x)\\cos x = (\\pi - 2x)\\sin x$$</div>
         </div>
       </div>
 
       <div class="step-card">
         <div class="step-header" onclick="toggleStep(this.parentElement)">
-          <div class="step-title"><span class="step-num">4</span>交互验证</div>
+          <div class="step-title"><span class="step-num">4</span>验证 $x=\\frac{\\pi}{2}$ 是极值点</div>
           <span class="step-arrow">▶</span>
         </div>
         <div class="step-body">
-          <p>拖动滑块寻找直线与曲线相切的临界状态：</p>
+          <p>将 $x=\\dfrac{\\pi}{2}$ 代入分子方程：</p>
+          <p>• 左边：$\\dfrac{\\pi}{2}\\!\\left(\\pi-\\frac{\\pi}{2}\\right)\\cos\\frac{\\pi}{2} = \\dfrac{\\pi}{2}\\cdot\\dfrac{\\pi}{2}\\cdot 0 = 0$</p>
+          <p>• 右边：$\\!\\left(\\pi-2\\cdot\\frac{\\pi}{2}\\right)\\sin\\frac{\\pi}{2} = 0 \\cdot 1 = 0$</p>
+          <p>两边相等（都为0），所以 $x=\\dfrac{\\pi}{2}$ 是 $g'(x)=0$ 的解，即<b>驻点</b>。</p>
+          <div class="tip">💡 由对称性，$x=\\frac{\\pi}{2}$ 是对称中心，也是唯一的极值点。可进一步分析 $g'(x)$ 符号确认这是最值点。</div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">5</span>计算 $g\\!\\left(\\frac{\\pi}{2}\\right)$</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>代入 $x=\\dfrac{\\pi}{2}$：</p>
+          <div class="formula">$$g\\!\\left(\\frac{\\pi}{2}\\right) = \\frac{\\sin\\frac{\\pi}{2}}{\\frac{\\pi}{2}\\!\\left(\\pi - \\frac{\\pi}{2}\\right)} = \\frac{1}{\\frac{\\pi}{2} \\cdot \\frac{\\pi}{2}} = \\frac{1}{\\frac{\\pi^2}{4}} = \\frac{4}{\\pi^2}$$</div>
+          <p>即 $g\\!\\left(\\dfrac{\\pi}{2}\\right) = \\dfrac{4}{\\pi^2} \\approx 0.4053$。</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">6</span>判断最大还是最小</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>分析 $g(x)$ 在边界的行为：</p>
+          <p>• 当 $x\\to 0^+$ 时：$f(x)\\to 1$，$\\pi-x\\to\\pi$，所以 $g(x)\\to\\dfrac{1}{\\pi}\\approx 0.3183$</p>
+          <p>• 当 $x\\to \\pi^-$ 时：$f(x)\\to 0$，$\\pi-x\\to 0^+$，用洛必达或等价无穷小：$g(x)\\to\\dfrac{f'(\\pi)}{-1}=\\dfrac{-(-1/\\pi)}{1}=\\dfrac{1}{\\pi}\\approx 0.3183$</p>
+          <p>两端极限都是 $\\dfrac{1}{\\pi}\\approx 0.3183$，而中点 $g\\!\\left(\\dfrac{\\pi}{2}\\right)=\\dfrac{4}{\\pi^2}\\approx 0.4053$。</p>
+          <p>由于 $\\dfrac{4}{\\pi^2} > \\dfrac{1}{\\pi}$（因为 $\\pi < 4$），中点值更大。</p>
+          <div class="formula">$$\\frac{4}{\\pi^2} \\approx 0.4053 > \\frac{1}{\\pi} \\approx 0.3183$$</div>
+          <p>因此 $x=\\dfrac{\\pi}{2}$ 是<b>最大值点</b>，边界处取最小值 $\\dfrac{1}{\\pi}$。</p>
+          <div class="warn">⚠️ 严格来说需验证 $g(x)$ 单调性：在 $\\left(0,\\frac{\\pi}{2}\\right)$ 上 $g'(x)>0$（递增），在 $\\left(\\frac{\\pi}{2},\\pi\\right)$ 上 $g'(x)<0$（递减），故 $\\frac{\\pi}{2}$ 为最大值点，两端趋近最小值 $\\frac{1}{\\pi}$。</div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">7</span>得出 $a$ 和 $b$</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>由 $a \\leq g(x) \\leq b$ 恒成立：</p>
+          <p>• $a$ 的最大值 $= \\min g(x) = \\dfrac{1}{\\pi}$（边界极限，取不到但可无限逼近）</p>
+          <p>• $b$ 的最小值 $= \\max g(x) = \\dfrac{4}{\\pi^2}$（在 $x=\\dfrac{\\pi}{2}$ 处取得）</p>
+          <div class="formula">$$\\boxed{a_{\\max} = \\frac{1}{\\pi}, \\quad b_{\\min} = \\frac{4}{\\pi^2}}$$</div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header" onclick="toggleStep(this.parentElement)">
+          <div class="step-title"><span class="step-num">8</span>交互验证</div>
+          <span class="step-arrow">▶</span>
+        </div>
+        <div class="step-body">
+          <p>拖动滑块，观察直线 $y=a(\\pi-x)$ 与曲线的关系：</p>
           <div class="control-row">
-            <label>参数 a</label>
-            <input type="range" id="slider-a" min="0" max=1" step="0.005" value="0.405">
-            <span class="val-display" id="val-a">0.405</span>
+            <label>参数 $a$</label>
+            <input type="range" id="slider-a" min="0.2" max="0.5" step="0.001" value="0.318">
+            <span class="val-display" id="val-a">0.318</span>
           </div>
           <div class="control-row">
-            <label>参数 b</label>
-            <input type="range" id="slider-b" min="0" max="1" step="0.005" value="0.405">
+            <label>参数 $b$</label>
+            <input type="range" id="slider-b" min="0.3" max="0.5" step="0.001" value="0.405">
             <span class="val-display" id="val-b">0.405</span>
           </div>
-          <p style="font-size:.78rem; color:#64748b;">理论值：$a = b = \\dfrac{4}{\\pi^2} \\approx 0.4053$</p>
-          <p style="font-size:.78rem; color:#16a34a;">当间隙 = 0 时，直线与曲线相切</p>
+          <p style="font-size:.8rem; color:#64748b;">理论值：$a_{\\max}=\\frac{1}{\\pi}\\approx 0.3183$，$b_{\\min}=\\frac{4}{\\pi^2}\\approx 0.4053$。</p>
+          <p style="font-size:.8rem; color:#16a34a;">绿色=直线在曲线下方（满足），红色=超出（不满足）。间隙=0 时相切。</p>
         </div>
       </div>
 
       <div class="answer-box">
-        <b>✅ 答案：</b>$a_{\\max} = \\dfrac{4}{\\pi^2}$，$b_{\\min} = \\dfrac{4}{\\pi^2}$
+        <b>✅ 最终答案：</b>$a_{\\max} = \\dfrac{1}{\\pi}$，$b_{\\min} = \\dfrac{4}{\\pi^2}$。
       </div>
     `;
     setTimeout(() => {
